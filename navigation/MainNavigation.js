@@ -25,6 +25,7 @@ function BottomTab() {
         headerTitleStyle: { fontSize: 23, color: "white" },
         tabBarStyle: { backgroundColor: "black" },
         tabBarInactiveTintColor: "white",
+        tabBarActiveTintColor : Colors.blue,
         tabBarLabelStyle: {
           fontSize: 16,
         },
@@ -90,7 +91,7 @@ function MainNavigation() {
         component={ChatDetailScreen}
         options={{
           headerStyle: {
-            backgroundColor: "rgb(69, 53, 32)",
+            backgroundColor: "rgb(37, 35, 31)",
           },
         }}
       />

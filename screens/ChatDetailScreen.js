@@ -21,8 +21,8 @@ function ChatDetailScreen() {
   return (
     <KeyboardAvoidingView
       style={styles.conatiner}
-      contentContainerStyle={styles.conatiner}
-      behavior={Platform.OS == "ios" ? "position" : ""}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={74}
     >
       <TouchableWithoutFeedback
         style={styles.conatiner}
@@ -64,28 +64,34 @@ function ChatDetailScreen() {
   );
 }
 const styles = StyleSheet.create({
-  conatiner: { flex: 1 },
+  conatiner: {
+    flex: 1,
+  },
+
   wrapInputUser: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 10,
-    paddingVertical: 15,
+    paddingTop: 7,
     paddingBottom: Platform.OS == "ios" ? 40 : 15,
-    backgroundColor: "rgb(69, 53, 32)",
+    backgroundColor: "rgb(37, 35, 31)",
   },
+
   icon: {
     width: 30,
     textAlign: "center",
   },
+
   textInput: {
     flex: 1,
     fontSize: 18,
     paddingHorizontal: 10,
-    paddingVertical: 7,
+    paddingVertical: 6,
     marginHorizontal: 10,
     borderRadius: 40,
     backgroundColor: Colors.lightGrey,
   },
+
   iconSend: {
     backgroundColor: Colors.blue,
     padding: 6,
