@@ -12,15 +12,13 @@ function CustomButtom({ children, style, onPress, textStyle }) {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: Colors.primary,
-    borderRadius: 10,
-    marginTop: 20,
-    alignSelf: "center",
+    borderRadius: 15,
   },
   text: {
     fontSize: 20,
     color: "white",
     textAlign: "center",
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 30,
   },
 });

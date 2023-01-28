@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 7,
     paddingBottom: Platform.OS == "ios" ? 40 : 15,
-    backgroundColor: "rgb(37, 35, 31)",
+    backgroundColor: "rgb(21, 20, 20)",
   },
 
   icon: {
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginHorizontal: 10,
     borderRadius: 40,
-    backgroundColor: Colors.lightGrey,
+    backgroundColor: "rgb(55,55,55)",
   },
 
   iconSend: {

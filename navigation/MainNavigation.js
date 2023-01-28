@@ -91,7 +91,7 @@ function MainNavigation() {
         component={ChatDetailScreen}
         options={{
           headerStyle: {
-            backgroundColor: "rgb(37, 35, 31)",
+            backgroundColor: "rgb(21, 20, 20)",
           },
         }}
       />
