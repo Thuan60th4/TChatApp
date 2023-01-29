@@ -23,12 +23,16 @@ function BottomTab() {
         },
         headerTitleAlign: "center",
         headerTitleStyle: { fontSize: 23, color: "white" },
-        tabBarStyle: { backgroundColor: "black" },
+        tabBarStyle: {
+          backgroundColor: "black",
+          borderTopWidth: 0,
+        },
         tabBarInactiveTintColor: "white",
-        tabBarActiveTintColor : Colors.blue,
+        tabBarActiveTintColor: Colors.blue,
         tabBarLabelStyle: {
           fontSize: 16,
         },
+        headerShadowVisible: false,
       }}
     >
       <Bottom.Screen

@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { Formik } from "formik";
@@ -17,10 +16,11 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/colors";
 import CustomButtom from "../CustomButtom";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { signIn, signUp } from "../../firebase/auth";
+import { logOut, signIn, signUp } from "../../firebase/auth";
 import { LoginSchema, SignupSchema } from "./schemaValidate";
 import { useDispatch } from "react-redux";
 import { authenticate } from "../../store/AuthSlice";
+import CustomInput from "../CustomInput";
 
 function AuthForm({ isLogin }) {
   const navigation = useNavigation();
@@ -44,6 +44,10 @@ function AuthForm({ isLogin }) {
     let res;
     if (isLogin) {
       res = await signIn(values.email, values.password);
+      // setTimeout(() => {
+      //   dispatch(authenticate({ token: null, userData: null }));
+      //   logOut();
+      // }, 2000);
     } else {
       res = await signUp(
         values.firstName,
@@ -51,12 +55,12 @@ function AuthForm({ isLogin }) {
         values.email,
         values.password
       );
-      if (res.token) dispatch(authenticate(res));
+    }
+    if (res?.token) dispatch(authenticate(res));
+    else if (res?.error) {
+      Alert.alert("An Error Occured", res.error.replace("auth/", ""));
     }
     setLoading(false);
-    if (res.error) {
-      Alert.alert("An Error Occured", res.error);
-    }
 
     // resetForm({ values: initialValues });
   };
@@ -87,42 +91,29 @@ function AuthForm({ isLogin }) {
                 {!isLogin && (
                   <>
                     <View style={styles.formGroup}>
-                      <Text style={styles.label}>First name</Text>
-                      <View style={styles.textInputContain}>
-                        <AntDesign
-                          name="user"
-                          size={25}
-                          color="white"
-                          style={{ marginLeft: 6 }}
-                        />
-                        <TextInput
-                          onChangeText={handleChange("firstName")}
-                          onBlur={handleBlur("firstName")}
-                          value={values.firstName}
-                          style={styles.textInptut}
-                        />
-                      </View>
+                      <CustomInput
+                        label="First name"
+                        Icon={AntDesign}
+                        name="user"
+                        onChangeText={handleChange("firstName")}
+                        onBlur={handleBlur("firstName")}
+                        value={values.firstName}
+                      />
                       {errors.firstName && touched.firstName ? (
                         <Text style={styles.errorText}>{errors.firstName}</Text>
                       ) : null}
                     </View>
 
                     <View style={styles.formGroup}>
-                      <Text style={styles.label}>Last name</Text>
-                      <View style={styles.textInputContain}>
-                        <AntDesign
-                          name="user"
-                          size={25}
-                          color="white"
-                          style={{ marginLeft: 6 }}
-                        />
-                        <TextInput
-                          onChangeText={handleChange("lastName")}
-                          onBlur={handleBlur("lastName")}
-                          value={values.lastName}
-                          style={styles.textInptut}
-                        />
-                      </View>
+                      <CustomInput
+                        label="Last name"
+                        Icon={AntDesign}
+                        name="user"
+                        onChangeText={handleChange("lastName")}
+                        onBlur={handleBlur("lastName")}
+                        value={values.lastName}
+                      />
+
                       {errors.lastName && touched.lastName ? (
                         <Text style={styles.errorText}>{errors.lastName}</Text>
                       ) : null}
@@ -130,43 +121,31 @@ function AuthForm({ isLogin }) {
                   </>
                 )}
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Email</Text>
-                  <View style={styles.textInputContain}>
-                    <Feather
-                      name="mail"
-                      size={25}
-                      color="white"
-                      style={{ marginLeft: 6 }}
-                    />
-                    <TextInput
-                      onChangeText={handleChange("email")}
-                      onBlur={handleBlur("email")}
-                      value={values.email}
-                      style={styles.textInptut}
-                    />
-                  </View>
+                  <CustomInput
+                    label="Email"
+                    Icon={Feather}
+                    name="mail"
+                    onChangeText={handleChange("email")}
+                    onBlur={handleBlur("email")}
+                    value={values.email}
+                  />
+
                   {errors.email && touched.email ? (
                     <Text style={styles.errorText}>{errors.email}</Text>
                   ) : null}
                 </View>
 
                 <View style={styles.formGroup}>
-                  <Text style={styles.label}>Password</Text>
-                  <View style={styles.textInputContain}>
-                    <Feather
-                      name="lock"
-                      size={25}
-                      color="white"
-                      style={{ marginLeft: 6 }}
-                    />
-                    <TextInput
-                      onChangeText={handleChange("password")}
-                      onBlur={handleBlur("password")}
-                      value={values.password}
-                      style={styles.textInptut}
-                      secureTextEntry={true}
-                    />
-                  </View>
+                  <CustomInput
+                    label="Password"
+                    Icon={Feather}
+                    name="lock"
+                    onChangeText={handleChange("password")}
+                    onBlur={handleBlur("password")}
+                    value={values.password}
+                    secureTextEntry={true}
+                  />
+
                   {errors.password && touched.password ? (
                     <Text style={styles.errorText}>{errors.password}</Text>
                   ) : null}
@@ -217,24 +196,6 @@ const styles = StyleSheet.create({
   },
   formGroup: {
     marginVertical: 5,
-  },
-  label: {
-    fontWeight: "bold",
-    fontSize: 17,
-    marginBottom: 5,
-    color: "white",
-  },
-  textInputContain: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgb(182, 182, 182)",
-    borderRadius: 10,
-  },
-  textInptut: {
-    flex: 1,
-    fontSize: 17,
-    paddingHorizontal: 10,
-    paddingVertical: 11,
   },
   errorText: {
     color: "red",
