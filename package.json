@@ -9,22 +9,27 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/react-native-action-sheet": "^4.0.1",
+    "@react-native-async-storage/async-storage": "~1.17.3",
     "@react-navigation/bottom-tabs": "^6.5.3",
     "@react-navigation/native": "^6.1.2",
     "@react-navigation/stack": "^6.3.11",
     "@reduxjs/toolkit": "^1.9.1",
     "expo": "~47.0.12",
+    "expo-image-picker": "~14.0.2",
+    "expo-linking": "~3.3.0",
+    "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",
     "firebase": "^9.16.0",
     "formik": "^2.2.9",
     "react": "18.1.0",
     "react-native": "0.70.5",
     "react-native-gesture-handler": "~2.8.0",
+    "react-native-get-random-values": "^1.8.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-redux": "^8.0.5",
-    "yup": "^0.32.11",
-    "@react-native-async-storage/async-storage": "~1.17.3",
-    "expo-splash-screen": "~0.17.5"
+    "uuid": "^9.0.0",
+    "yup": "^0.32.11"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 const CustomInput = forwardRef(
   ({ label, Icon, name, styleTextInput, ...textInputProps }, ref) => {
     return (
-      <View>
+      <View >
         <Text style={styles.label}>{label}</Text>
         <View style={[styles.textInputContain, styleTextInput]}>
           <Icon name={name} size={25} color="white" style={{ marginLeft: 6 }} />
@@ -14,7 +14,7 @@ const CustomInput = forwardRef(
             style={[
               styles.textInptut,
               textInputProps.multiline && {
-                textAlignVertical: "center",
+                textAlignVertical: "top",
                 minHeight: 70,
               },
             ]}

@@ -12,6 +12,7 @@ import { store } from "./store/store";
 import { useEffect } from "react";
 import { getUserData } from "./firebase/auth";
 import { authenticate } from "./store/AuthSlice";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 
 LogBox.ignoreLogs(["AsyncStorage has been extracted"]); //hủy cái warning của react khi dùg firebase
 SplashScreen.preventAutoHideAsync();
@@ -30,10 +31,10 @@ function Root() {
             dispatch(authenticate({ token, userData }));
           }
         }
-        await SplashScreen.hideAsync();
       } catch (error) {
         console.log(error);
       }
+      await SplashScreen.hideAsync();
     };
     getToken();
   }, []);
@@ -45,11 +46,13 @@ function Root() {
 export default function App() {
   return (
     <>
-      <Provider store={store}>
-        <NavigationContainer>
-          <Root />
-        </NavigationContainer>
-      </Provider>
+      <ActionSheetProvider>
+        <Provider store={store}>
+          <NavigationContainer>
+            <Root />
+          </NavigationContainer>
+        </Provider>
+      </ActionSheetProvider>
       <StatusBar style="light" />
     </>
   );

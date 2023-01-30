@@ -1,29 +1,24 @@
-import {
-  ActivityIndicator,
-  Keyboard,
-  StyleSheet,
-  Text,
-  TouchableWithoutFeedback,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Formik } from "formik";
-import { createRef, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 import { Colors } from "../constants/colors";
 import CustomInput from "../components/CustomInput";
 import { InfoUserSchema } from "../components/AuthForm/schemaValidate";
 import CustomButtom from "../components/CustomButtom";
 import { logOut, updateUserData } from "../firebase/auth";
-import { authenticate } from "../store/AuthSlice";
+import { authenticate, updateDataState } from "../store/AuthSlice";
+import ProfileImage from "../components/ProfileImage";
 
 function AuthForm() {
   const userData = useSelector((state) => state.userData);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
-
+  const [iconDone, setIconDone] = useState(false);
   const textInputRefs = Array(3)
     .fill()
     .map(() => useRef(null));
@@ -31,21 +26,26 @@ function AuthForm() {
     firstName: userData ? userData.firstName : "",
     lastName: userData ? userData.lastName : "",
     email: userData ? userData.email : "",
-    about: "",
+    about: userData.about || "",
   };
 
   const handleSubmitForm = async (values, { resetForm }) => {
     textInputRefs.forEach((ref) => ref.current.blur());
-    // console.log(textInputRefs);
     setLoading(true);
     await updateUserData(userData.userId, values);
+    dispatch(updateDataState(values));
     setLoading(false);
+    setIconDone(true);
+    setTimeout(() => {
+      setIconDone(false);
+    }, 2000);
     // resetForm({ values: initialValues });
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAwareScrollView style={{ flex: 1, backgroundColor: "black" }}>
       <View style={styles.wrapper}>
+        <ProfileImage userData={userData} />
         <Formik
           initialValues={initialValues}
           validationSchema={InfoUserSchema}
@@ -135,12 +135,27 @@ function AuthForm() {
                   style={{ marginTop: 30 }}
                 />
               ) : (
-                <CustomButtom
-                  style={{ marginTop: 20, borderRadius: 5 }}
-                  onPress={handleSubmit}
+                (initialValues.firstName != values.firstName ||
+                  initialValues.lastName != values.lastName ||
+                  initialValues.about != values.about) && (
+                  <CustomButtom
+                    style={{ marginTop: 20, borderRadius: 5, minWidth: 150 }}
+                    onPress={handleSubmit}
+                  >
+                    Save
+                  </CustomButtom>
+                )
+              )}
+
+              {iconDone && (
+                <View
+                  style={{ flexDirection: "row", marginTop: 6, marginLeft: 16 }}
                 >
-                  Save
-                </CustomButtom>
+                  <Text style={{ color: Colors.primary, fontSize: 20 }}>
+                    Saved
+                  </Text>
+                  <Feather name="check" size={27} color={Colors.primary} />
+                </View>
               )}
 
               <CustomButtom
@@ -148,6 +163,7 @@ function AuthForm() {
                   marginTop: 20,
                   borderRadius: 5,
                   backgroundColor: "red",
+                  minWidth: 150,
                 }}
                 onPress={() => {
                   dispatch(authenticate({ token: null, userData: {} }));
@@ -160,7 +176,7 @@ function AuthForm() {
           )}
         </Formik>
       </View>
-    </TouchableWithoutFeedback>
+    </KeyboardAwareScrollView>
   );
 }
 
@@ -169,10 +185,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: "black",
+    alignItems: "center",
   },
 
   formGroup: {
     marginVertical: 5,
+    width: "100%",
   },
   errorText: {
     color: "red",

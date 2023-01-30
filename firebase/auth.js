@@ -1,3 +1,4 @@
+import "react-native-get-random-values";
 import { app } from "./index";
 import {
   getAuth,
@@ -6,8 +7,14 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 import { get, getDatabase, ref, set, update } from "firebase/database";
+import {
+  getDownloadURL,
+  getStorage,
+  ref as refStorage,
+  uploadBytes,
+} from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { v4 as uuidv4 } from "uuid";
 const auth = getAuth();
 const db = getDatabase();
 
@@ -39,8 +46,10 @@ export const getUserData = async (userId) => {
 };
 
 export const updateUserData = async (userId, newData) => {
-  const fullName = `${newData.firstName} ${newData.lastName}`.toLowerCase();
-  newData.fullName = fullName;
+  if (newData.firstName || newData.lastName) {
+    const fullName = `${newData.firstName} ${newData.lastName}`.toLowerCase();
+    newData.fullName = fullName;
+  }
   try {
     await update(ref(db, "users/" + userId), newData);
     return true;
@@ -115,4 +124,28 @@ export const logOut = async () => {
     console.log(error.message);
     return false;
   }
+};
+
+export const uploadImageToFirebase = async (uri) => {
+  const blob = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function (e) {
+      console.log(e);
+      reject(new TypeError("Network request failed"));
+    };
+    xhr.responseType = "blob";
+    xhr.open("GET", uri, true);
+    xhr.send(null);
+  });
+
+  const fileRef = refStorage(getStorage(), `profilePics/${uuidv4()}`);
+  const result = await uploadBytes(fileRef, blob);
+
+  // We're done with the blob, close and release it
+  blob.close();
+
+  return await getDownloadURL(fileRef);
 };

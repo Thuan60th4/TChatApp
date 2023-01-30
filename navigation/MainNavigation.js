@@ -17,6 +17,8 @@ const Bottom = createBottomTabNavigator();
 function BottomTab() {
   return (
     <Bottom.Navigator
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
       screenOptions={{
         headerStyle: {
           backgroundColor: "black",
