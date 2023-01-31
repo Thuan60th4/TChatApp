@@ -6,7 +6,17 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { get, getDatabase, ref, set, update } from "firebase/database";
+import {
+  endAt,
+  get,
+  getDatabase,
+  orderByChild,
+  query,
+  ref,
+  set,
+  startAt,
+  update,
+} from "firebase/database";
 import {
   getDownloadURL,
   getStorage,
@@ -148,4 +158,27 @@ export const uploadImageToFirebase = async (uri) => {
   blob.close();
 
   return await getDownloadURL(fileRef);
+};
+
+export const searchUsers = async (queryText) => {
+  const searchTerm = queryText.toLowerCase();
+
+  try {
+    const userRef = ref(db, "users");
+
+    const queryRef = query(
+      userRef,
+      orderByChild("fullName"),
+      startAt(searchTerm),
+      endAt(searchTerm + "\uf8ff")
+    );
+
+    const snapshot = await get(queryRef);
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return {};
+  } catch (error) {
+    console.log(error);
+  }
 };

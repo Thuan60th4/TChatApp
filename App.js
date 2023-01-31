@@ -14,6 +14,7 @@ import { getUserData } from "./firebase/auth";
 import { authenticate } from "./store/AuthSlice";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 
+LogBox.ignoreLogs(["Sending `onAnimatedValueUpdate`"]);
 LogBox.ignoreLogs(["AsyncStorage has been extracted"]); //hủy cái warning của react khi dùg firebase
 SplashScreen.preventAutoHideAsync();
 

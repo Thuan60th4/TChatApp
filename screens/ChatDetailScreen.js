@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
   TextInput,
   TouchableWithoutFeedback,
   View,
@@ -14,10 +13,16 @@ import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { Colors } from "../constants/colors";
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
-function ChatDetailScreen() {
+function ChatDetailScreen({ route, navigation }) {
+  const data = route.params;
   const [textInputValue, setTextInputValue] = useState("");
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: `${data.firstName} ${data.lastName}`,
+    });
+  }, [route.params]);
   return (
     <KeyboardAvoidingView
       style={styles.conatiner}
@@ -74,7 +79,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 7,
     paddingBottom: Platform.OS == "ios" ? 40 : 15,
-    backgroundColor: "rgb(21, 20, 20)",
+    backgroundColor: Colors.space,
   },
 
   icon: {

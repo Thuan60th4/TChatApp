@@ -19,9 +19,11 @@ function AuthForm() {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [iconDone, setIconDone] = useState(false);
+
   const textInputRefs = Array(3)
     .fill()
     .map(() => useRef(null));
+
   const initialValues = {
     firstName: userData ? userData.firstName : "",
     lastName: userData ? userData.lastName : "",
@@ -92,6 +94,7 @@ function AuthForm() {
                   <Text style={styles.errorText}>{errors.lastName}</Text>
                 ) : null}
               </View>
+              
               <View style={styles.formGroup}>
                 <CustomInput
                   label="Email"
