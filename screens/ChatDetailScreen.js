@@ -22,7 +22,7 @@ function ChatDetailScreen({ route, navigation }) {
     navigation.setOptions({
       title: `${data.firstName} ${data.lastName}`,
     });
-  }, [route.params]);
+  }, [data]);
   return (
     <KeyboardAvoidingView
       style={styles.conatiner}
