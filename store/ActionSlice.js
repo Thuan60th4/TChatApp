@@ -1,10 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const AuthSlice = createSlice({
+const ActionSlice = createSlice({
   name: "Auth",
   initialState: {
     token: "",
     userData: {},
+    friendChatData: {},
+    chatsData: [],
   },
   reducers: {
     authenticate: (state, action) => {
@@ -14,9 +16,16 @@ const AuthSlice = createSlice({
     updateDataState: (state, action) => {
       state.userData = { ...state.userData, ...action.payload };
     },
+    storeFriendChat: (state, action) => {
+      state.friendChatData = action.payload;
+    },
+    setChatsData: (state, action) => {
+      state.chatsData = action.payload;
+    },
   },
 });
 
-export const { authenticate, updateDataState } = AuthSlice.actions;
+export const { authenticate, updateDataState, storeFriendChat, setChatsData } =
+  ActionSlice.actions;
 
-export default AuthSlice.reducer;
+export default ActionSlice.reducer;

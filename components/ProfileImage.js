@@ -10,9 +10,9 @@ import {
   requesCameraPermission,
   requesLibrabyPermission,
 } from "../utils/requestPermission";
-import { updateUserData, uploadImageToFirebase } from "../firebase/auth";
+import { updateUserData, uploadImageToFirebase } from "../firebase";
 import { useDispatch } from "react-redux";
-import { updateDataState } from "../store/AuthSlice";
+import { updateDataState } from "../store/ActionSlice";
 
 function ProfileImage({ userData }) {
   const { showActionSheetWithOptions } = useActionSheet();
@@ -35,8 +35,8 @@ function ProfileImage({ userData }) {
           const urlImg = await uploadImageToFirebase(result.assets[0].uri);
           const avatar = { avatar: urlImg };
           await updateUserData(userData.userId, avatar);
-          setLoading(false);
           dispatch(updateDataState(avatar));
+          setLoading(false);
         }
       }
     } catch (error) {
@@ -57,8 +57,8 @@ function ProfileImage({ userData }) {
         const urlImg = await uploadImageToFirebase(result.assets[0].uri);
         const avatar = { avatar: urlImg };
         await updateUserData(userData.userId, avatar);
-        setLoading(false);
         dispatch(updateDataState(avatar));
+        setLoading(false);
       }
     }
   };

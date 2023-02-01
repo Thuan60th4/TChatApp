@@ -1,8 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import AuthSlice from "./AuthSlice";
+import ActionSlice from "./ActionSlice";
 
 export const store = configureStore({
-  reducer: AuthSlice,
+  reducer: ActionSlice,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,

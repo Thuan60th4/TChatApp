@@ -11,19 +11,22 @@ import { SearchBar } from "@rneui/themed";
 import { FontAwesome } from "@expo/vector-icons";
 
 import { Colors } from "../constants/colors";
-import { searchUsers } from "../firebase/auth";
+import { searchUsers } from "../firebase";
 import UserItem from "../components/UserItem";
+import { useSelector } from "react-redux";
 
 function NewChatScreen() {
   const [searchValue, setSearchValue] = useState("");
   const [listUsers, setListUsers] = useState();
   const [showLoading, setShowLoading] = useState(false);
+  const userData = useSelector((state) => state.userData);
 
   useEffect(() => {
     if (searchValue.trim()) {
       const timer = setTimeout(async () => {
         setShowLoading(true);
         const result = await searchUsers(searchValue);
+        delete result[userData.userId];
         setListUsers(Object.values(result));
         setShowLoading(false);
       }, 500);
@@ -36,7 +39,7 @@ function NewChatScreen() {
     <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
       <View style={styles.container}>
         <SearchBar
-          placeholder="Type Here..."
+          placeholder="Search..."
           onChangeText={(e) => setSearchValue(e)}
           value={searchValue.trim()}
           showLoading={showLoading}

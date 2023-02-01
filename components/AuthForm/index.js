@@ -16,10 +16,10 @@ import { Feather } from "@expo/vector-icons";
 import { Colors } from "../../constants/colors";
 import CustomButtom from "../CustomButtom";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { signIn, signUp } from "../../firebase/auth";
+import { signIn, signUp } from "../../firebase";
 import { LoginSchema, SignupSchema } from "./schemaValidate";
 import { useDispatch } from "react-redux";
-import { authenticate } from "../../store/AuthSlice";
+import { authenticate } from "../../store/ActionSlice";
 import CustomInput from "../CustomInput";
 
 function AuthForm({ isLogin }) {

@@ -1,17 +1,205 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import "react-native-get-random-values";
+import { app } from "./initalFirebase";
+import {
+  getAuth,
+  signOut,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import {
+  endAt,
+  get,
+  getDatabase,
+  orderByChild,
+  push,
+  query,
+  ref,
+  set,
+  startAt,
+  update,
+} from "firebase/database";
+import {
+  getDownloadURL,
+  getStorage,
+  ref as refStorage,
+  uploadBytes,
+} from "firebase/storage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { v4 as uuidv4 } from "uuid";
+const auth = getAuth();
+const db = getDatabase();
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyCKLFSOcAenc3qQyRzhSN-7jNmSCbMppLU",
-  authDomain: "tchatapp-c6b2c.firebaseapp.com",
-  projectId: "tchatapp-c6b2c",
-  storageBucket: "tchatapp-c6b2c.appspot.com",
-  messagingSenderId: "1030080881542",
-  appId: "1:1030080881542:web:5bc68dd0e72e42720dc207",
+export const signUp = async (firstName, lastName, email, password) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    const { accessToken, expirationTime } = user.stsTokenManager;
+    const token = accessToken;
+    const expiryDateToken = new Date(expirationTime).toISOString();
+
+    const userData = await saveUserDatabase(
+      firstName,
+      lastName,
+      email,
+      user.uid
+    );
+
+    saveDataStorage(token, expiryDateToken, user.uid);
+
+    return { token, userData };
+  } catch (error) {
+    console.log(error.message);
+    return { error: error.code };
+  }
 };
 
-// Initialize Firebase
-export const app = initializeApp(firebaseConfig);
+export const signIn = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const user = userCredential.user;
+    const { accessToken, expirationTime } = user.stsTokenManager;
+    const token = accessToken;
+    const expiryDateToken = new Date(expirationTime).toISOString();
+
+    const userData = await getUserData(user.uid);
+    saveDataStorage(token, expiryDateToken, user.uid);
+
+    return { token, userData };
+  } catch (error) {
+    console.log(error.code);
+    return { error: error.code };
+  }
+};
+
+export const logOut = async () => {
+  try {
+    await signOut(auth);
+    AsyncStorage.removeItem("token");
+    return true;
+  } catch (error) {
+    console.log(error.message);
+    return false;
+  }
+};
+
+export const saveUserDatabase = async (firstName, lastName, email, userId) => {
+  const fullName = `${firstName} ${lastName}`.toLowerCase();
+  const userData = {
+    firstName,
+    lastName,
+    fullName,
+    email,
+    userId,
+    signUpDate: new Date().toISOString(),
+  };
+  try {
+    await set(ref(db, "users/" + userId), userData);
+    return userData;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getUserData = async (userId) => {
+  try {
+    const userData = await get(ref(db, "users/" + userId));
+    return userData.val();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const updateUserData = async (userId, newData) => {
+  if (newData.firstName || newData.lastName) {
+    const fullName = `${newData.firstName} ${newData.lastName}`.toLowerCase();
+    newData.fullName = fullName;
+  }
+  try {
+    await update(ref(db, "users/" + userId), newData);
+    return true;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const saveDataStorage = (token, expiryDateToken, userId) => {
+  AsyncStorage.setItem(
+    "token",
+    JSON.stringify({ token, expiryDateToken, userId })
+  );
+};
+
+export const uploadImageToFirebase = async (uri) => {
+  const blob = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      resolve(xhr.response);
+    };
+    xhr.onerror = function (e) {
+      console.log(e);
+      reject(new TypeError("Network request failed"));
+    };
+    xhr.responseType = "blob";
+    xhr.open("GET", uri, true);
+    xhr.send(null);
+  });
+
+  const fileRef = refStorage(getStorage(), `profilePics/${uuidv4()}`);
+  const result = await uploadBytes(fileRef, blob);
+
+  // We're done with the blob, close and release it
+  blob.close();
+
+  return await getDownloadURL(fileRef);
+};
+
+export const searchUsers = async (queryText) => {
+  const searchTerm = queryText.toLowerCase();
+
+  try {
+    const userRef = ref(db, "users");
+
+    const queryRef = query(
+      userRef,
+      orderByChild("fullName"),
+      startAt(searchTerm),
+      endAt(searchTerm + "\uf8ff")
+    );
+
+    const snapshot = await get(queryRef);
+    if (snapshot.exists()) {
+      return snapshot.val();
+    }
+    return {};
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const createChat = async (loggedInUserId, idUsersInChat) => {
+  const chatData = {
+    users: idUsersInChat,
+    createtedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    createtedBy: loggedInUserId,
+    updatedBy: loggedInUserId,
+  };
+  try {
+    const chatKey = await push(ref(db, "chats"), chatData);
+    for (const userId of idUsersInChat) {
+      await push(ref(db, "userChats/" + userId), chatKey.key);
+    }
+    return chatKey.key;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};

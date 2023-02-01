@@ -1,14 +1,18 @@
 import { useNavigation } from "@react-navigation/native";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useDispatch } from "react-redux";
 import { Colors } from "../constants/colors";
+import { storeFriendChat } from "../store/ActionSlice";
 
 function UserItem({ data, index }) {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const handleNavigate = () => {
+    dispatch(storeFriendChat(data));
+    navigation.navigate("chatDetail");
+  };
   return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={() => navigation.navigate("chatDetail", data)}
-    >
+    <TouchableOpacity style={styles.container} onPress={handleNavigate}>
       <Image
         style={styles.image}
         source={

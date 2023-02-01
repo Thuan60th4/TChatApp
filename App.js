@@ -6,13 +6,13 @@ import { Provider, useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
 
-import MainNavigation from "./navigation/MainNavigation";
 import AuthNavigation from "./navigation/AuthNavigation";
 import { store } from "./store/store";
 import { useEffect } from "react";
-import { getUserData } from "./firebase/auth";
-import { authenticate } from "./store/AuthSlice";
+import { getUserData } from "./firebase";
+import { authenticate } from "./store/ActionSlice";
 import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import HomeNavigation from "./navigation/HomeNavigation";
 
 LogBox.ignoreLogs(["Sending `onAnimatedValueUpdate`"]);
 LogBox.ignoreLogs(["AsyncStorage has been extracted"]); //hủy cái warning của react khi dùg firebase
@@ -40,7 +40,7 @@ function Root() {
     getToken();
   }, []);
 
-  if (!!userInfo.token) return <MainNavigation />;
+  if (!!userInfo.token) return <HomeNavigation />;
   return <AuthNavigation />;
 }
 

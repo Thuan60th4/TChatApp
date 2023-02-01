@@ -10,8 +10,8 @@ import { Colors } from "../constants/colors";
 import CustomInput from "../components/CustomInput";
 import { InfoUserSchema } from "../components/AuthForm/schemaValidate";
 import CustomButtom from "../components/CustomButtom";
-import { logOut, updateUserData } from "../firebase/auth";
-import { authenticate, updateDataState } from "../store/AuthSlice";
+import { logOut, updateUserData } from "../firebase";
+import { authenticate, updateDataState } from "../store/ActionSlice";
 import ProfileImage from "../components/ProfileImage";
 
 function AuthForm() {
@@ -94,7 +94,7 @@ function AuthForm() {
                   <Text style={styles.errorText}>{errors.lastName}</Text>
                 ) : null}
               </View>
-              
+
               <View style={styles.formGroup}>
                 <CustomInput
                   label="Email"
