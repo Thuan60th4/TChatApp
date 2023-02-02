@@ -1,7 +1,5 @@
 import { Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import {
-  createStackNavigator,
-} from "@react-navigation/stack";
+import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SimpleLineIcons } from "@expo/vector-icons";
@@ -63,6 +61,7 @@ function BottomTab() {
         component={ChatListScreen}
         options={({ navigation }) => ({
           title: "Chats",
+          headerTitle: "",
           tabBarIcon: ({ size, color }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
@@ -97,6 +96,7 @@ function BottomTab() {
         component={SettingScreen}
         options={{
           title: "Settings",
+          headerTitle: "",
           tabBarIcon: ({ size, color }) => (
             <SimpleLineIcons name="settings" size={size} color={color} />
           ),
@@ -105,7 +105,6 @@ function BottomTab() {
     </Bottom.Navigator>
   );
 }
-
 
 function MainNavigation() {
   return (

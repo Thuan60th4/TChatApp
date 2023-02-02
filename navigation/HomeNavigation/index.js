@@ -1,12 +1,12 @@
 import { getAuth } from "firebase/auth";
-import { getDatabase, off, onValue, ref } from "firebase/database";
+import { get, getDatabase, off, onValue, ref } from "firebase/database";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Colors } from "../../constants/colors";
 
 import { app } from "../../firebase/initalFirebase";
-import { setChatsData } from "../../store/ActionSlice";
+import { setChatsData, setStoredUsers } from "../../store/ActionSlice";
 import MainNavigation from "./MainNavigation";
 
 const auth = getAuth();
@@ -25,7 +25,7 @@ function HomeNavigation() {
       const chatIdsData = snapshot.val() || {};
       const chatIds = Object.values(chatIdsData);
 
-      const chatsData = [];
+      const chatsData = {};
       let chatsFoundCount = 0;
 
       for (const chatId of chatIds) {
@@ -37,9 +37,16 @@ function HomeNavigation() {
           const data = chatSnapshot.val();
           if (data) {
             //thêm vào để làm khóa cho chỗ flatlist cho dễ
+            for (const userId of data.users) {
+              if (userData.userId != userId) {
+                get(ref(db, `users/${userId}`)).then((userSnapshot) => {
+                  const userSnapshotData = userSnapshot.val();
+                  dispatch(setStoredUsers(userSnapshotData));
+                });
+              }
+            }
             data.key = chatSnapshot.key;
-
-            chatsData.push(data);
+            chatsData[chatSnapshot.key] = data;
           }
 
           if (chatsFoundCount >= chatIds.length) {

@@ -9,17 +9,20 @@ import {
 } from "react-native";
 import { SearchBar } from "@rneui/themed";
 import { FontAwesome } from "@expo/vector-icons";
+import { useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { Colors } from "../constants/colors";
 import { searchUsers } from "../firebase";
 import UserItem from "../components/UserItem";
-import { useSelector } from "react-redux";
+import { setStoreFriendChat } from "../store/ActionSlice";
 
-function NewChatScreen() {
+function NewChatScreen({ navigation }) {
   const [searchValue, setSearchValue] = useState("");
   const [listUsers, setListUsers] = useState();
   const [showLoading, setShowLoading] = useState(false);
   const userData = useSelector((state) => state.userData);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     if (searchValue.trim()) {
@@ -35,6 +38,11 @@ function NewChatScreen() {
       setListUsers();
     }
   }, [searchValue]);
+
+  const handleNavigate = (data) => {
+    dispatch(setStoreFriendChat(data));
+    navigation.navigate("chatDetail");
+  };
   return (
     <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
       <View style={styles.container}>
@@ -81,7 +89,11 @@ function NewChatScreen() {
               <FlatList
                 data={listUsers}
                 renderItem={(item) => (
-                  <UserItem data={item.item} index={item.index} />
+                  <UserItem
+                    data={item.item}
+                    index={item.index}
+                    onPress={() => handleNavigate(item.item)}
+                  />
                 )}
                 keyExtractor={(item) => item.userId}
                 style={{

@@ -51,6 +51,7 @@ function ChatDetailScreen({ route, navigation }) {
   }, [friendChatData]);
 
   const handleSendMessage = async () => {
+    setTextInputValue("");
     const chatKey = await createChat(userData.userId, [
       userData.userId,
       friendChatData.userId,
@@ -58,7 +59,6 @@ function ChatDetailScreen({ route, navigation }) {
     if (chatKey) {
       setChatId(chatKey);
     }
-    setTextInputValue("");
   };
 
   return (

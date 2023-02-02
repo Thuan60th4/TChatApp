@@ -6,7 +6,8 @@ const ActionSlice = createSlice({
     token: "",
     userData: {},
     friendChatData: {},
-    chatsData: [],
+    chatsData: {},
+    storedUsers: {},
   },
   reducers: {
     authenticate: (state, action) => {
@@ -16,16 +17,26 @@ const ActionSlice = createSlice({
     updateDataState: (state, action) => {
       state.userData = { ...state.userData, ...action.payload };
     },
-    storeFriendChat: (state, action) => {
+    setStoreFriendChat: (state, action) => {
       state.friendChatData = action.payload;
     },
     setChatsData: (state, action) => {
       state.chatsData = action.payload;
     },
+
+    setStoredUsers: (state, action) => {
+      const newUsers = action.payload;
+      state.storedUsers[newUsers.userId] = newUsers;
+    },
   },
 });
 
-export const { authenticate, updateDataState, storeFriendChat, setChatsData } =
-  ActionSlice.actions;
+export const {
+  authenticate,
+  updateDataState,
+  setStoreFriendChat,
+  setChatsData,
+  setStoredUsers,
+} = ActionSlice.actions;
 
 export default ActionSlice.reducer;
