@@ -34,7 +34,7 @@ function ChatListScreen({ navigation }) {
             <UserItem
               data={otherUser}
               index={item.index}
-              subTitle="This will be a message..."
+              subTitle={chatData.lastMessageText || "This will be a message..."}
               style={{ marginLeft: 15 }}
               onPress={() => {
                 dispatch(setStoreFriendChat(otherUser));

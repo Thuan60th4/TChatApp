@@ -90,6 +90,13 @@ export const logOut = async () => {
   }
 };
 
+const saveDataStorage = (token, expiryDateToken, userId) => {
+  AsyncStorage.setItem(
+    "token",
+    JSON.stringify({ token, expiryDateToken, userId })
+  );
+};
+
 export const saveUserDatabase = async (firstName, lastName, email, userId) => {
   const fullName = `${firstName} ${lastName}`.toLowerCase();
   const userData = {
@@ -128,13 +135,6 @@ export const updateUserData = async (userId, newData) => {
   } catch (error) {
     console.log(error);
   }
-};
-
-const saveDataStorage = (token, expiryDateToken, userId) => {
-  AsyncStorage.setItem(
-    "token",
-    JSON.stringify({ token, expiryDateToken, userId })
-  );
 };
 
 export const uploadImageToFirebase = async (uri) => {
@@ -184,9 +184,10 @@ export const searchUsers = async (queryText) => {
   }
 };
 
-export const createChat = async (loggedInUserId, idUsersInChat) => {
+export const createChat = async (loggedInUserId, idUsersInChat, content) => {
   const chatData = {
     users: idUsersInChat,
+    lastMessageText: content,
     createtedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createtedBy: loggedInUserId,
@@ -197,9 +198,29 @@ export const createChat = async (loggedInUserId, idUsersInChat) => {
     for (const userId of idUsersInChat) {
       await push(ref(db, "userChats/" + userId), chatKey.key);
     }
+    await sendTextMessage(chatKey.key, loggedInUserId, content);
     return chatKey.key;
   } catch (error) {
     console.log(error);
     return false;
+  }
+};
+
+export const sendTextMessage = async (chatId, senderId, content) => {
+  const timeSend = new Date().toISOString();
+  const messageData = {
+    sentBy: senderId,
+    sentAt: timeSend,
+    text: content,
+  };
+  try {
+    await push(ref(db, "messages/" + chatId), messageData);
+    await update(ref(db, "chats/" + chatId), {
+      updatedAt: timeSend,
+      updatedBy: senderId,
+      lastMessageText: content,
+    });
+  } catch (error) {
+    console.log(error);
   }
 };

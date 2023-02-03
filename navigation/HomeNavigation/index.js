@@ -6,7 +6,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { Colors } from "../../constants/colors";
 
 import { app } from "../../firebase/initalFirebase";
-import { setChatsData, setStoredUsers } from "../../store/ActionSlice";
+import {
+  setChatMessages,
+  setChatsData,
+  setStoredUsers,
+} from "../../store/ActionSlice";
 import MainNavigation from "./MainNavigation";
 
 const auth = getAuth();
@@ -36,7 +40,6 @@ function HomeNavigation() {
           chatsFoundCount++;
           const data = chatSnapshot.val();
           if (data) {
-            //thêm vào để làm khóa cho chỗ flatlist cho dễ
             for (const userId of data.users) {
               if (userData.userId != userId) {
                 get(ref(db, `users/${userId}`)).then((userSnapshot) => {
@@ -45,15 +48,24 @@ function HomeNavigation() {
                 });
               }
             }
+            //thêm vào để làm khóa cho chỗ flatlist cho dễ
             data.key = chatSnapshot.key;
+            // chatsData = { ...chatsData, [chatSnapshot.key]: data };
             chatsData[chatSnapshot.key] = data;
           }
-
           if (chatsFoundCount >= chatIds.length) {
+            //định chuyền cả data sang cho bên redux xử lí nhưng vậy lại phải render theo số lần lặp
             dispatch(setChatsData(chatsData));
             setIsLoading(false);
           }
         });
+        const messagesRef = ref(db, `messages/${chatId}`);
+        refs.push(messagesRef);
+        onValue(messagesRef, (messagesSnapshot) => {
+          const messagesData = messagesSnapshot.val();
+          dispatch(setChatMessages({ chatId, messagesData }));
+        });
+
       }
       if (chatsFoundCount == 0) {
         setIsLoading(false);

@@ -126,7 +126,7 @@ function MainNavigation() {
         name="chatDetail"
         component={ChatDetailScreen}
         options={{
-          headerTitleAlign: "left",
+          headerTitleAlign: "center",
           headerStyle: {
             backgroundColor: Colors.space,
           },

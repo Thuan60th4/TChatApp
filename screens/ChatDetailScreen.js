@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -15,25 +16,38 @@ import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { Colors } from "../constants/colors";
-import { useLayoutEffect, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import IconButtom from "../components/IconButtom";
-import { createChat } from "../firebase";
+import { createChat, sendTextMessage } from "../firebase";
+import { FlatList } from "react-native-gesture-handler";
 
 function ChatDetailScreen({ route, navigation }) {
-  const { friendChatData, userData } = useSelector((state) => state);
   const [textInputValue, setTextInputValue] = useState("");
   const [chatId, setChatId] = useState(route?.params);
+  const { friendChatData, userData } = useSelector((state) => state);
+  const messageLists = useSelector((state) => {
+    if (!chatId) return [];
+    const messagesData = state.messagesData[chatId];
+    const allMessages = [];
+    for (const key in messagesData) {
+      allMessages.push({
+        key,
+        ...messagesData[key],
+      });
+    }
+    return allMessages;
+  });
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
+        <Text
+          style={styles.name}
+        >{`${friendChatData.firstName} ${friendChatData.lastName}`}</Text>
+      ),
+      headerRight: () => (
+        <TouchableOpacity>
           <Image
             style={styles.image}
             source={
@@ -42,24 +56,27 @@ function ChatDetailScreen({ route, navigation }) {
                 : require("../assets/image/noAvatar.jpeg")
             }
           />
-          <Text
-            style={styles.name}
-          >{`${friendChatData.firstName} ${friendChatData.lastName}`}</Text>
-        </View>
+        </TouchableOpacity>
       ),
     });
   }, [friendChatData]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     setTextInputValue("");
-    const chatKey = await createChat(userData.userId, [
-      userData.userId,
-      friendChatData.userId,
-    ]);
-    if (chatKey) {
-      setChatId(chatKey);
+    if (!chatId) {
+      //Nếu ko có chatId thì mới tạo chat mới
+      const chatKey = await createChat(
+        userData.userId,
+        [userData.userId, friendChatData.userId],
+        textInputValue
+      );
+      if (chatKey) {
+        setChatId(chatKey);
+      }
+    } else {
+      await sendTextMessage(chatId, userData.userId, textInputValue);
     }
-  };
+  }, [textInputValue, chatId]);
 
   return (
     <KeyboardAvoidingView
@@ -76,7 +93,15 @@ function ChatDetailScreen({ route, navigation }) {
             source={require("../assets/image/background.jpg")}
             style={styles.conatiner}
           >
-            {!chatId && (
+            {chatId ? (
+              <FlatList
+                data={messageLists}
+                renderItem={({ item }) => (
+                  <Text style={{ color: "white" }}>{item.text}</Text>
+                )}
+                keyExtractor={(item) => item.key}
+              />
+            ) : (
               <View style={styles.noteNewChat}>
                 <Text>This is new chat.Send something!</Text>
               </View>
