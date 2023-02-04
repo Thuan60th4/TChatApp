@@ -7,4 +7,6 @@ export const Colors = {
   primary: "#32d48e",
   space: "rgb(21, 20, 20)",
   border: "#3d3b3b",
+  message: "#087b49",
+  friendMessage: "#3a3d3f",
 };

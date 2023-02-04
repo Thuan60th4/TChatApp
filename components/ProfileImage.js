@@ -67,8 +67,9 @@ function ProfileImage({ userData }) {
     showActionSheetWithOptions(
       {
         options: ["Take a picture", "Choose a picture", "Cancel"],
-        cancelButtonIndex: 2,
         tintColor: Colors.blue,
+        cancelButtonIndex: 2,
+        cancelButtonTintColor: "red",
       },
       (buttonIndex) => {
         if (buttonIndex === 0) {

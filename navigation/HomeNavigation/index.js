@@ -66,9 +66,9 @@ function HomeNavigation() {
           dispatch(setChatMessages({ chatId, messagesData }));
         });
 
-      }
-      if (chatsFoundCount == 0) {
-        setIsLoading(false);
+        if (chatsFoundCount == 0) {
+          setIsLoading(false);
+        }
       }
     });
 

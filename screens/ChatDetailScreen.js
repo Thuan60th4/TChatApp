@@ -21,6 +21,7 @@ import { useSelector } from "react-redux";
 import IconButtom from "../components/IconButtom";
 import { createChat, sendTextMessage } from "../firebase";
 import { FlatList } from "react-native-gesture-handler";
+import Message from "../components/Message";
 
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
@@ -79,71 +80,74 @@ function ChatDetailScreen({ route, navigation }) {
   }, [textInputValue, chatId]);
 
   return (
-    <KeyboardAvoidingView
+    <ImageBackground
+      source={require("../assets/image/background.jpg")}
       style={styles.conatiner}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={74}
     >
-      <TouchableWithoutFeedback
+      <KeyboardAvoidingView
         style={styles.conatiner}
-        onPress={Keyboard.dismiss}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={74}
       >
-        <View style={styles.conatiner}>
-          <ImageBackground
-            source={require("../assets/image/background.jpg")}
-            style={styles.conatiner}
-          >
-            {chatId ? (
-              <FlatList
-                data={messageLists}
-                renderItem={({ item }) => (
-                  <Text style={{ color: "white" }}>{item.text}</Text>
-                )}
-                keyExtractor={(item) => item.key}
-              />
-            ) : (
-              <View style={styles.noteNewChat}>
-                <Text>This is new chat.Send something!</Text>
-              </View>
+        {chatId ? (
+          <FlatList
+            data={messageLists}
+            renderItem={({ item, index }) => {
+              const type =
+                item.sentBy == userData.userId ? "ownMessage" : "friendMessage";
+              return (
+                <Message type={type} index={index.toString()}>
+                  {item.text}
+                </Message>
+              );
+            }}
+            keyExtractor={(item) => item.key}
+            ListFooterComponent={() => (
+              <View style={{ marginBottom: 20 }}></View>
             )}
-          </ImageBackground>
-          <View style={styles.wrapInputUser}>
+          />
+        ) : (
+          <View style={styles.noteNewChat}>
+            <Text>This is new chat.Send something!</Text>
+          </View>
+        )}
+        <View style={styles.wrapInputUser}>
+          <IconButtom
+            Icon={Ionicons}
+            style={styles.icon}
+            name="add"
+            size={35}
+            color={Colors.blue}
+          />
+
+          <TextInput
+            style={styles.textInput}
+            value={textInputValue}
+            onChangeText={setTextInputValue}
+            multiline
+          />
+          {textInputValue ? (
+            <View style={styles.iconSend}>
+              <IconButtom
+                onPress={handleSendMessage}
+                Icon={MaterialCommunityIcons}
+                name="send"
+                size={20}
+                color="white"
+              />
+            </View>
+          ) : (
             <IconButtom
-              Icon={Ionicons}
+              Icon={Feather}
               style={styles.icon}
-              name="add"
-              size={35}
+              name="camera"
+              size={25}
               color={Colors.blue}
             />
-
-            <TextInput
-              style={styles.textInput}
-              value={textInputValue}
-              onChangeText={setTextInputValue}
-            />
-            {textInputValue ? (
-              <View style={styles.iconSend}>
-                <IconButtom
-                  onPress={handleSendMessage}
-                  Icon={MaterialCommunityIcons}
-                  name="send"
-                  size={20}
-                  color="white"
-                />
-              </View>
-            ) : (
-              <IconButtom
-                Icon={Feather}
-                style={styles.icon}
-                name="camera"
-                size={25}
-                color={Colors.blue}
-              />
-            )}
-          </View>
+          )}
         </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 const styles = StyleSheet.create({
@@ -178,7 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "white",
     backgroundColor: "rgb(55,55,55)",
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 7,
     marginHorizontal: 10,
     borderRadius: 40,

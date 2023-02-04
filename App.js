@@ -5,13 +5,14 @@ import { LogBox } from "react-native";
 import { Provider, useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SplashScreen from "expo-splash-screen";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
+import { MenuProvider } from "react-native-popup-menu";
 
 import AuthNavigation from "./navigation/AuthNavigation";
 import { store } from "./store/store";
 import { useEffect } from "react";
 import { getUserData } from "./firebase";
 import { authenticate } from "./store/ActionSlice";
-import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import HomeNavigation from "./navigation/HomeNavigation";
 
 LogBox.ignoreLogs(["Sending `onAnimatedValueUpdate`"]);
@@ -47,13 +48,15 @@ function Root() {
 export default function App() {
   return (
     <>
-      <ActionSheetProvider>
-        <Provider store={store}>
-          <NavigationContainer>
-            <Root />
-          </NavigationContainer>
-        </Provider>
-      </ActionSheetProvider>
+      <Provider store={store}>
+        <MenuProvider>
+          <ActionSheetProvider>
+            <NavigationContainer>
+              <Root />
+            </NavigationContainer>
+          </ActionSheetProvider>
+        </MenuProvider>
+      </Provider>
       <StatusBar style="light" />
     </>
   );
