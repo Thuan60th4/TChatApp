@@ -65,10 +65,10 @@ function HomeNavigation() {
           const messagesData = messagesSnapshot.val();
           dispatch(setChatMessages({ chatId, messagesData }));
         });
-
-        if (chatsFoundCount == 0) {
-          setIsLoading(false);
-        }
+      }
+      //cho vô trong sao nó lặp được vì lúc đầu nó ko có trò chuyện nào
+      if (chatsFoundCount == 0) {
+        setIsLoading(false);
       }
     });
 

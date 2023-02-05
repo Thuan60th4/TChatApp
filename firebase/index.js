@@ -198,7 +198,12 @@ export const createChat = async (loggedInUserId, idUsersInChat, content) => {
     for (const userId of idUsersInChat) {
       await push(ref(db, "userChats/" + userId), chatKey.key);
     }
-    await sendTextMessage(chatKey.key, loggedInUserId, content);
+    await push(ref(db, "messages/" + chatKey.key), {
+      sentBy: loggedInUserId,
+      sentAt: new Date().toISOString(),
+      text: content,
+    });
+
     return chatKey.key;
   } catch (error) {
     console.log(error);
@@ -215,10 +220,24 @@ export const sendTextMessage = async (chatId, senderId, content) => {
   };
   try {
     await push(ref(db, "messages/" + chatId), messageData);
+    if (content.length > 0) {
+      console.log(`${content.slice(0, 40)}...`);
+    }
     await update(ref(db, "chats/" + chatId), {
       updatedAt: timeSend,
       updatedBy: senderId,
-      lastMessageText: content,
+      lastMessageText:
+        content.length > 100 ? `${content.slice(0, 33)}...` : content,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const addHeartMessage = async (heartDataArray, chatId, messageId) => {
+  try {
+    await update(ref(db, `messages/${chatId}/${messageId}`), {
+      heart: heartDataArray,
     });
   } catch (error) {
     console.log(error);

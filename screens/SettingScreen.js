@@ -45,7 +45,7 @@ function AuthForm() {
   };
 
   return (
-    <KeyboardAwareScrollView style={{ flex: 1, backgroundColor: "black" }}>
+    <KeyboardAwareScrollView style={{ flex: 1, backgroundColor: "black" }} extraScrollHeight={50}>
       <Text style={styles.headerText}> Settings</Text>
 
       <View style={styles.wrapper}>

@@ -26,6 +26,7 @@ import Message from "../components/Message";
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
   const [chatId, setChatId] = useState(route?.params);
+  
   const { friendChatData, userData } = useSelector((state) => state);
   const messageLists = useSelector((state) => {
     if (!chatId) return [];
@@ -89,28 +90,40 @@ function ChatDetailScreen({ route, navigation }) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={74}
       >
-        {chatId ? (
-          <FlatList
-            data={messageLists}
-            renderItem={({ item, index }) => {
-              const type =
-                item.sentBy == userData.userId ? "ownMessage" : "friendMessage";
-              return (
-                <Message type={type} index={index.toString()}>
-                  {item.text}
-                </Message>
-              );
-            }}
-            keyExtractor={(item) => item.key}
-            ListFooterComponent={() => (
-              <View style={{ marginBottom: 20 }}></View>
-            )}
-          />
-        ) : (
-          <View style={styles.noteNewChat}>
-            <Text>This is new chat.Send something!</Text>
-          </View>
-        )}
+        <View style={styles.conatiner}>
+          {chatId ? (
+            <FlatList
+              data={messageLists}
+              renderItem={({ item, index }) => {
+                const type =
+                  item.sentBy == userData.userId
+                    ? "ownMessage"
+                    : "friendMessage";
+                return (
+                  <Message
+                    type={type}
+                    index={index.toString()}
+                    messageId={item.key}
+                    chatId={chatId}
+                    time={new Date(item.sentAt)
+                      .toLocaleTimeString()
+                      .slice(0, 5)}
+                  >
+                    {item.text}
+                  </Message>
+                );
+              }}
+              keyExtractor={(item) => item.key}
+              ListFooterComponent={() => (
+                <View style={{ marginBottom: 20 }}></View>
+              )}
+            />
+          ) : (
+            <View style={styles.noteNewChat}>
+              <Text>This is new chat.Send something!</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.wrapInputUser}>
           <IconButtom
             Icon={Ionicons}

@@ -28,6 +28,7 @@ function ProfileImage({ userData }) {
           allowsEditing: true,
           allowsMultipleSelection: false,
           aspect: [1, 1],
+          quality: 0.2,
         });
 
         if (!result.canceled) {
@@ -50,6 +51,7 @@ function ProfileImage({ userData }) {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
+        quality: 0.2,
       });
 
       if (!result.canceled) {
@@ -69,7 +71,7 @@ function ProfileImage({ userData }) {
         options: ["Take a picture", "Choose a picture", "Cancel"],
         tintColor: Colors.blue,
         cancelButtonIndex: 2,
-        cancelButtonTintColor: "red",
+        cancelButtonTintColor: "#c50427",
       },
       (buttonIndex) => {
         if (buttonIndex === 0) {

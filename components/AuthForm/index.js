@@ -67,7 +67,7 @@ function AuthForm({ isLogin }) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
-      <KeyboardAwareScrollView style={{ flex: 1 }} bounces={false}>
+      <KeyboardAwareScrollView style={{ flex: 1 }} bounces={false} extraScrollHeight={60}>
         <View style={styles.wrapper}>
           <Image
             style={styles.image}

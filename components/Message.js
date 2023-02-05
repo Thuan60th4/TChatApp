@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   View,
   Animated,
+  Image,
 } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import {
@@ -15,60 +16,92 @@ import {
 } from "react-native-popup-menu";
 
 import { Colors } from "../constants/colors";
+import { useSelector } from "react-redux";
+import { addHeartMessage } from "../firebase";
+import { getDatabase, off, onValue, ref } from "firebase/database";
+import { app } from "../firebase/initalFirebase";
 
-function Message({ type, index, children }) {
+const db = getDatabase();
+
+function Message({ type, index, messageId, chatId, time, children }) {
+  const { userData } = useSelector((state) => state);
+  const [heartDataArray, setHeartDataArray] = useState([]);
   const [isHeart, setIsheart] = useState(false);
+
   const menuRef = useRef();
   const timePress = useRef();
-  const heartValue = useRef(new Animated.Value(0)).current;
-  const isAnimated = useRef(false);
+  const heartValueAnimate = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (isHeart) {
-      Animated.timing(heartValue, {
+      Animated.timing(heartValueAnimate, {
         toValue: 1,
         duration: 700,
         useNativeDriver: true,
         // useNativeDriver: true, native drive là đẩy mấy cái luồng animation
         //  sang luồng native gốc để tối ưu hiệu năng nhưng nó chỉ hỗ trợ mấy cái mà ko bị thay đổi layout (transform,opacity,border,...)
-      }).start(() => (isAnimated.current = false));
+        // }).start(() => (isAnimated.current = false));
+      }).start();
     } else {
-      heartValue.setValue(0);
-      isAnimated.current = false;
+      heartValueAnimate.setValue(0);
     }
-  }, [isHeart, heartValue]);
+  }, [isHeart, heartValueAnimate]);
+
+  const heartAnimation = {
+    transform: [
+      {
+        scale: heartValueAnimate.interpolate({
+          inputRange: [0, 0.1, 0.8, 1],
+          outputRange: heartDataArray.length > 0 ? [1, 2, 2, 1] : [0, 2, 2, 1],
+        }),
+      },
+      {
+        translateY: heartValueAnimate.interpolate({
+          inputRange: [0, 0.1, 0.8, 1],
+          outputRange: [0, -10, -10, 1],
+        }),
+      },
+    ],
+  };
+
+  useEffect(() => {
+    if (messageId) {
+      var messageRef = ref(db, `messages/${chatId}/${messageId}`);
+      onValue(messageRef, (messagesSnapshot) => {
+        setHeartDataArray(messagesSnapshot.val().heart || []);
+      });
+    }
+    return () => off(messageRef);
+  }, [messageId]);
+
+  const updateValueHeart = async () => {
+    let heartArray = [];
+    if (heartDataArray.includes(userData.userId)) {
+      heartArray = heartDataArray.filter((data) => data != userData.userId);
+      setIsheart(false);
+    } else {
+      heartArray = [...heartDataArray, userData.userId];
+      setIsheart(true);
+    }
+    // setHeartDataArray(heartArray);
+    await addHeartMessage(heartArray, chatId, messageId);
+  };
 
   const handleDoubleTap = () => {
     const now = new Date();
     const delay = 700;
     if (
       timePress.current &&
-      now - timePress.current < delay &&
-      !isAnimated.current
+      now - timePress.current < delay
+      // && !isAnimated.current
     ) {
-      setIsheart(!isHeart);
-      isAnimated.current = true;
+      updateValueHeart();
+      // isAnimated.current = true;
     } else {
       timePress.current = now;
     }
   };
 
-  const heartAnimation = {
-    transform: [
-      {
-        scale: heartValue.interpolate({
-          inputRange: [0, 0.1, 0.8, 1],
-          outputRange: [0, 2, 2, 1],
-        }),
-      },
-      {
-        translateY: heartValue.interpolate({
-          inputRange: [0, 0.1, 0.8, 1],
-          outputRange: [0, -40, -40, 1],
-        }),
-      },
-    ],
-  };
   return (
     <View>
       <TouchableWithoutFeedback
@@ -77,25 +110,34 @@ function Message({ type, index, children }) {
           menuRef.current.props.ctx.menuActions.openMenu(index);
         }}
       >
-        <Animated.View
+        <View
           style={[
             styles.contain,
             styles[type],
-            isHeart && { marginBottom: 20 },
+            (isHeart || heartDataArray.length > 0) && { marginBottom: 20 },
           ]}
         >
           <Text style={styles.message}>{children}</Text>
-          <Animated.View
-            style={[styles.heartContainer, { opacity: isHeart ? 1 : 0 }]}
+          <Text style={styles.time}>{time}</Text>
+          <View
+            style={[
+              styles.heartContainer,
+              { opacity: heartDataArray.length > 0 ? 1 : 0 },
+            ]}
           >
             <Animated.Image
               style={[styles.heartIcon, heartAnimation]}
               source={require("../assets/image/heart.png")}
             />
-          </Animated.View>
-        </Animated.View>
+            {heartDataArray.length > 1 && (
+              <Text style={{ color: "white", marginLeft: 4, fontSize: 12 }}>
+                {heartDataArray.length}
+              </Text>
+            )}
+          </View>
+        </View>
       </TouchableWithoutFeedback>
-      <Menu name={index} ref={menuRef}>
+      <Menu name={index} ref={menuRef} style={styles[type]}>
         <MenuTrigger />
         <MenuOptions>
           <MenuOption onSelect={() => alert(`Reply`)} text="Reply" />
@@ -116,7 +158,8 @@ function Message({ type, index, children }) {
 
 const styles = StyleSheet.create({
   contain: {
-    margin: 10,
+    marginVertical: 10,
+    marginHorizontal: 20,
     borderRadius: 10,
   },
   //phải có backgroundColor mới boderRadius đc
@@ -130,23 +173,36 @@ const styles = StyleSheet.create({
   },
   message: {
     maxWidth: "80%",
+    minWidth: 80,
     color: "white",
     letterSpacing: 0.5,
     lineHeight: 21,
     padding: 10,
+    paddingBottom: 20,
     fontSize: 16,
   },
   heartContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     position: "absolute",
-    bottom: -20,
-    right: 5,
+    bottom: -16,
+    right: -9,
     backgroundColor: "#2e3132",
     padding: 5,
     borderRadius: 10,
   },
   heartIcon: {
-    width: 18,
-    height: 18,
+    width: 17,
+    height: 17,
+  },
+
+  time: {
+    position: "absolute",
+    bottom: 2,
+    right: 16,
+    letterSpacing: 0.3,
+    color: Colors.grey,
+    fontSize: 13,
   },
 });
 
