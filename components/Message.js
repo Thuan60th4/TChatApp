@@ -23,7 +23,16 @@ import { app } from "../firebase/initalFirebase";
 
 const db = getDatabase();
 
-function Message({ type, index, messageId, chatId, time, children }) {
+function Message({
+  type,
+  index,
+  messageId,
+  chatId,
+  replyMessageAbove,
+  time,
+  onSelectReply,
+  children,
+}) {
   const { userData } = useSelector((state) => state);
   const [heartDataArray, setHeartDataArray] = useState([]);
   const [isHeart, setIsheart] = useState(false);
@@ -31,7 +40,6 @@ function Message({ type, index, messageId, chatId, time, children }) {
   const menuRef = useRef();
   const timePress = useRef();
   const heartValueAnimate = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     if (isHeart) {
       Animated.timing(heartValueAnimate, {
@@ -68,7 +76,7 @@ function Message({ type, index, messageId, chatId, time, children }) {
     if (messageId) {
       var messageRef = ref(db, `messages/${chatId}/${messageId}`);
       onValue(messageRef, (messagesSnapshot) => {
-        setHeartDataArray(messagesSnapshot.val().heart || []);
+        setHeartDataArray(messagesSnapshot?.val?.()?.heart || []);
       });
     }
     return () => off(messageRef);
@@ -117,6 +125,22 @@ function Message({ type, index, messageId, chatId, time, children }) {
             (isHeart || heartDataArray.length > 0) && { marginBottom: 20 },
           ]}
         >
+          {replyMessageAbove && (
+            <View
+              style={[
+                styles.containReplyMessage,
+                {
+                  backgroundColor:
+                    type == "friendMessage" ? "#1c2124" : "#054d2e",
+                },
+              ]}
+            >
+              <Text style={styles.nameReply}>{replyMessageAbove.lastName}</Text>
+              <Text numberOfLines={1} style={styles.contentReply}>
+                {replyMessageAbove.text}
+              </Text>
+            </View>
+          )}
           <Text style={styles.message}>{children}</Text>
           <Text style={styles.time}>{time}</Text>
           <View
@@ -140,7 +164,7 @@ function Message({ type, index, messageId, chatId, time, children }) {
       <Menu name={index} ref={menuRef} style={styles[type]}>
         <MenuTrigger />
         <MenuOptions>
-          <MenuOption onSelect={() => alert(`Reply`)} text="Reply" />
+          <MenuOption onSelect={() => onSelectReply()} text="Reply" />
           <MenuOption
             onSelect={async () => {
               await Clipboard.setStringAsync(children);
@@ -161,7 +185,36 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginHorizontal: 20,
     borderRadius: 10,
+    maxWidth: "70%",
+    paddingVertical: 10,
+    paddingRight: 10,
   },
+
+  containReplyMessage: {
+    opacity: 0.8,
+    borderLeftColor: "#ff00d0",
+    borderLeftWidth: 4,
+    borderRadius: 7,
+    paddingVertical: 7,
+    paddingLeft: 8,
+    marginLeft: 7,
+    marginBottom: 10,
+  },
+
+  nameReply: {
+    letterSpacing: 0.5,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#ff00d0",
+    marginBottom: 7,
+  },
+  contentReply: {
+    maxWidth: "97%",
+    letterSpacing: 0.5,
+    fontSize: 16,
+    color: "#af93aa",
+  },
+
   //phải có backgroundColor mới boderRadius đc
   ownMessage: {
     backgroundColor: Colors.message,
@@ -172,14 +225,14 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
   },
   message: {
-    maxWidth: "80%",
-    minWidth: 80,
+    // maxWidth: "80%",
+    minWidth: 100,
+    fontSize: 16,
     color: "white",
     letterSpacing: 0.5,
     lineHeight: 21,
-    padding: 10,
-    paddingBottom: 20,
-    fontSize: 16,
+    paddingLeft: 10,
+    paddingBottom: 6,
   },
   heartContainer: {
     flexDirection: "row",

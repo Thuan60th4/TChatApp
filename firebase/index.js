@@ -211,23 +211,26 @@ export const createChat = async (loggedInUserId, idUsersInChat, content) => {
   }
 };
 
-export const sendTextMessage = async (chatId, senderId, content) => {
+export const sendTextMessage = async (
+  chatId,
+  senderId,
+  content,
+  messageReplyId
+) => {
   const timeSend = new Date().toISOString();
   const messageData = {
     sentBy: senderId,
     sentAt: timeSend,
     text: content,
   };
+  if (messageReplyId) messageData.messageReplyId = messageReplyId;
   try {
     await push(ref(db, "messages/" + chatId), messageData);
-    if (content.length > 0) {
-      console.log(`${content.slice(0, 40)}...`);
-    }
+
     await update(ref(db, "chats/" + chatId), {
       updatedAt: timeSend,
       updatedBy: senderId,
-      lastMessageText:
-        content.length > 100 ? `${content.slice(0, 33)}...` : content,
+      lastMessageText: content,
     });
   } catch (error) {
     console.log(error);

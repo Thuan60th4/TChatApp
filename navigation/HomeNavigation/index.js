@@ -41,12 +41,12 @@ function HomeNavigation() {
           const data = chatSnapshot.val();
           if (data) {
             for (const userId of data.users) {
-              if (userData.userId != userId) {
+              // if (userData.userId != userId) {
                 get(ref(db, `users/${userId}`)).then((userSnapshot) => {
                   const userSnapshotData = userSnapshot.val();
                   dispatch(setStoredUsers(userSnapshotData));
                 });
-              }
+              // }
             }
             //thêm vào để làm khóa cho chỗ flatlist cho dễ
             data.key = chatSnapshot.key;

@@ -22,12 +22,16 @@ import IconButtom from "../components/IconButtom";
 import { createChat, sendTextMessage } from "../firebase";
 import { FlatList } from "react-native-gesture-handler";
 import Message from "../components/Message";
+import ReplyMessage from "../components/ReplyMessage";
 
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
   const [chatId, setChatId] = useState(route?.params);
-  
-  const { friendChatData, userData } = useSelector((state) => state);
+  const [replying, setReplying] = useState();
+
+  const { friendChatData, userData, storedUsers, messagesData } = useSelector(
+    (state) => state
+  );
   const messageLists = useSelector((state) => {
     if (!chatId) return [];
     const messagesData = state.messagesData[chatId];
@@ -65,6 +69,7 @@ function ChatDetailScreen({ route, navigation }) {
 
   const handleSendMessage = useCallback(async () => {
     setTextInputValue("");
+    setReplying();
     if (!chatId) {
       //Nếu ko có chatId thì mới tạo chat mới
       const chatKey = await createChat(
@@ -76,19 +81,24 @@ function ChatDetailScreen({ route, navigation }) {
         setChatId(chatKey);
       }
     } else {
-      await sendTextMessage(chatId, userData.userId, textInputValue);
+      await sendTextMessage(
+        chatId,
+        userData.userId,
+        textInputValue,
+        replying && replying.key
+      );
     }
   }, [textInputValue, chatId]);
 
   return (
-    <ImageBackground
-      source={require("../assets/image/background.jpg")}
+    <KeyboardAvoidingView
       style={styles.conatiner}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={74}
     >
-      <KeyboardAvoidingView
+      <ImageBackground
+        source={require("../assets/image/background.jpg")}
         style={styles.conatiner}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={74}
       >
         <View style={styles.conatiner}>
           {chatId ? (
@@ -99,15 +109,32 @@ function ChatDetailScreen({ route, navigation }) {
                   item.sentBy == userData.userId
                     ? "ownMessage"
                     : "friendMessage";
+                let messageReplyAbove;
+                if (item.messageReplyId) {
+                  let replyUserKey =
+                    messagesData[chatId][item.messageReplyId].sentBy;
+                  messageReplyAbove = {
+                    text: messagesData[chatId][item.messageReplyId].text,
+                    lastName:
+                      userData.userId == storedUsers[replyUserKey].userId
+                        ? "you"
+                        : storedUsers[replyUserKey].lastName,
+                  };
+                }
+
                 return (
                   <Message
                     type={type}
                     index={index.toString()}
                     messageId={item.key}
                     chatId={chatId}
+                    replyMessageAbove={messageReplyAbove}
                     time={new Date(item.sentAt)
                       .toLocaleTimeString()
                       .slice(0, 5)}
+                    onSelectReply={() => {
+                      setReplying({ ...item, ...storedUsers[item.sentBy] });
+                    }}
                   >
                     {item.text}
                   </Message>
@@ -124,6 +151,21 @@ function ChatDetailScreen({ route, navigation }) {
             </View>
           )}
         </View>
+
+        {replying && (
+          <ReplyMessage
+            name={
+              replying.userId == userData.userId
+                ? "Replying yourself"
+                : `${replying.lastName}`
+            }
+            message={replying.text}
+            onPress={() => {
+              setReplying();
+            }}
+          />
+        )}
+
         <View style={styles.wrapInputUser}>
           <IconButtom
             Icon={Ionicons}
@@ -159,8 +201,8 @@ function ChatDetailScreen({ route, navigation }) {
             />
           )}
         </View>
-      </KeyboardAvoidingView>
-    </ImageBackground>
+      </ImageBackground>
+    </KeyboardAvoidingView>
   );
 }
 const styles = StyleSheet.create({
@@ -176,6 +218,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignSelf: "center",
   },
+
   wrapInputUser: {
     flexDirection: "row",
     alignItems: "center",

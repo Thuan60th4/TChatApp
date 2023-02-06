@@ -25,7 +25,7 @@ function UserItem({ data, index,onPress, subTitle, style }) {
         ]}
       >
         <Text style={styles.name}>{`${data?.firstName} ${data.lastName}`}</Text>
-        <Text style={styles.email}>{subTitle || data.email}</Text>
+        <Text numberOfLines={1} style={styles.email}>{subTitle || data.email}</Text>
       </View>
     </TouchableOpacity>
   );
