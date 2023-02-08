@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Image,
   ImageBackground,
   Keyboard,
@@ -14,13 +15,16 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import AwesomeAlert from "react-native-awesome-alerts";
+import { useSelector } from "react-redux";
+import { useCallback, useLayoutEffect, useState } from "react";
+import { FlatList } from "react-native-gesture-handler";
+
+import { openCameraImage, openLibraryImage } from "../utils/accessImage";
 
 import { Colors } from "../constants/colors";
-import { useCallback, useLayoutEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import IconButtom from "../components/IconButtom";
-import { createChat, sendTextMessage } from "../firebase";
-import { FlatList } from "react-native-gesture-handler";
+import { createChat, sendMessage, uploadImageToFirebase } from "../firebase";
 import Message from "../components/Message";
 import ReplyMessage from "../components/ReplyMessage";
 
@@ -28,6 +32,8 @@ function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
   const [chatId, setChatId] = useState(route?.params);
   const [replying, setReplying] = useState();
+  const [imageUri, setImageUri] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const { friendChatData, userData, storedUsers, messagesData } = useSelector(
     (state) => state
@@ -70,7 +76,14 @@ function ChatDetailScreen({ route, navigation }) {
   const handleSendMessage = useCallback(async () => {
     setTextInputValue("");
     setReplying();
-    if (!chatId) {
+    if (chatId) {
+      await sendMessage(
+        chatId,
+        userData.userId,
+        textInputValue,
+        replying && replying.key
+      );
+    } else {
       //Nếu ko có chatId thì mới tạo chat mới
       const chatKey = await createChat(
         userData.userId,
@@ -80,15 +93,57 @@ function ChatDetailScreen({ route, navigation }) {
       if (chatKey) {
         setChatId(chatKey);
       }
-    } else {
-      await sendTextMessage(
-        chatId,
-        userData.userId,
-        textInputValue,
-        replying && replying.key
-      );
     }
   }, [textInputValue, chatId]);
+
+  //image
+
+  const chooseImgFromLib = useCallback(async () => {
+    const imageResult = await openLibraryImage();
+    if (imageResult) {
+      setImageUri(imageResult);
+    }
+  }, [imageUri]);
+
+  const takePhoto = useCallback(async () => {
+    const imageResult = await openCameraImage();
+    if (imageResult) {
+      setImageUri(imageResult);
+    }
+  }, [imageUri]);
+
+  const handleUploadImage = useCallback(async () => {
+    try {
+      setLoading(true);
+      const urlImg = await uploadImageToFirebase(imageUri, "ChatPics");
+
+      if (chatId) {
+        await sendMessage(
+          chatId,
+          userData.userId,
+          "Image",
+          replying && replying.key,
+          urlImg
+        );
+      } else {
+        //Nếu ko có chatId thì mới tạo chat mới
+        const chatKey = await createChat(
+          userData.userId,
+          [userData.userId, friendChatData.userId],
+          "Image",
+          urlImg
+        );
+        if (chatKey) {
+          setChatId(chatKey);
+        }
+      }
+      setLoading(false);
+      setReplying();
+      setImageUri("");
+    } catch (error) {
+      console.log(error);
+    }
+  }, [imageUri]);
 
   return (
     <KeyboardAvoidingView
@@ -113,6 +168,7 @@ function ChatDetailScreen({ route, navigation }) {
                 if (item.messageReplyId) {
                   let replyUserKey =
                     messagesData[chatId][item.messageReplyId].sentBy;
+
                   messageReplyAbove = {
                     text: messagesData[chatId][item.messageReplyId].text,
                     lastName:
@@ -135,6 +191,7 @@ function ChatDetailScreen({ route, navigation }) {
                     onSelectReply={() => {
                       setReplying({ ...item, ...storedUsers[item.sentBy] });
                     }}
+                    imageMessage={item.imageUrl}
                   >
                     {item.text}
                   </Message>
@@ -151,7 +208,6 @@ function ChatDetailScreen({ route, navigation }) {
             </View>
           )}
         </View>
-
         {replying && (
           <ReplyMessage
             name={
@@ -165,9 +221,9 @@ function ChatDetailScreen({ route, navigation }) {
             }}
           />
         )}
-
         <View style={styles.wrapInputUser}>
           <IconButtom
+            onPress={chooseImgFromLib}
             Icon={Ionicons}
             style={styles.icon}
             name="add"
@@ -184,23 +240,55 @@ function ChatDetailScreen({ route, navigation }) {
           {textInputValue ? (
             <View style={styles.iconSend}>
               <IconButtom
-                onPress={handleSendMessage}
                 Icon={MaterialCommunityIcons}
                 name="send"
                 size={20}
                 color="white"
+                onPress={handleSendMessage}
               />
             </View>
           ) : (
             <IconButtom
-              Icon={Feather}
-              style={styles.icon}
-              name="camera"
-              size={25}
-              color={Colors.blue}
+            Icon={Feather}
+            style={styles.icon}
+            name="camera"
+            size={25}
+            color={Colors.blue}
+            onPress={takePhoto}
             />
           )}
         </View>
+
+        <AwesomeAlert
+          show={!!imageUri}
+          title="Send image?"
+          closeOnTouchOutside={true}
+          closeOnHardwareBackPress={false}
+          showCancelButton={true}
+          showConfirmButton={true}
+          cancelText="Cancel"
+          confirmText="Send image"
+          titleStyle={{ fontWeight: "bold", marginBottom: 10 }}
+          confirmButtonColor={Colors.primary}
+          cancelButtonColor="red"
+          onCancelPressed={() => setImageUri("")}
+          onDismiss={() => setImageUri("")}
+          onConfirmPressed={handleUploadImage}
+          customView={
+            <View>
+              {loading ? (
+                <ActivityIndicator size="large" color={Colors.primary} />
+              ) : (
+                imageUri && (
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={{ width: 200, height: 200 }}
+                  />
+                )
+              )}
+            </View>
+          }
+        />
       </ImageBackground>
     </KeyboardAvoidingView>
   );

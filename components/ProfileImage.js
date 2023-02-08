@@ -3,16 +3,12 @@ import { FontAwesome } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import { useActionSheet } from "@expo/react-native-action-sheet";
 import { useState } from "react";
-import * as ImagePicker from "expo-image-picker";
 
 import { Colors } from "../constants/colors";
-import {
-  requesCameraPermission,
-  requesLibrabyPermission,
-} from "../utils/requestPermission";
 import { updateUserData, uploadImageToFirebase } from "../firebase";
 import { useDispatch } from "react-redux";
 import { updateDataState } from "../store/ActionSlice";
+import { openCameraImage, openLibraryImage } from "../utils/accessImage";
 
 function ProfileImage({ userData }) {
   const { showActionSheetWithOptions } = useActionSheet();
@@ -21,24 +17,15 @@ function ProfileImage({ userData }) {
 
   const openImagePicker = async () => {
     try {
-      const hasPermission = await requesLibrabyPermission();
-      if (hasPermission) {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          allowsMultipleSelection: false,
-          aspect: [1, 1],
-          quality: 0.2,
-        });
+      const imageUri = await openLibraryImage();
 
-        if (!result.canceled) {
-          setLoading(true);
-          const urlImg = await uploadImageToFirebase(result.assets[0].uri);
-          const avatar = { avatar: urlImg };
-          await updateUserData(userData.userId, avatar);
-          dispatch(updateDataState(avatar));
-          setLoading(false);
-        }
+      if (imageUri) {
+        setLoading(true);
+        const urlImg = await uploadImageToFirebase(imageUri);
+        const avatar = { avatar: urlImg };
+        await updateUserData(userData.userId, avatar);
+        dispatch(updateDataState(avatar));
+        setLoading(false);
       }
     } catch (error) {
       console.log(error);
@@ -46,22 +33,19 @@ function ProfileImage({ userData }) {
   };
 
   const openCamera = async () => {
-    const hasPermission = await requesCameraPermission();
-    if (hasPermission) {
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.2,
-      });
+    try {
+      const imageUri = await openCameraImage();
 
-      if (!result.canceled) {
+      if (imageUri) {
         setLoading(true);
-        const urlImg = await uploadImageToFirebase(result.assets[0].uri);
+        const urlImg = await uploadImageToFirebase(imageUri);
         const avatar = { avatar: urlImg };
         await updateUserData(userData.userId, avatar);
         dispatch(updateDataState(avatar));
         setLoading(false);
       }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -113,9 +97,9 @@ function ProfileImage({ userData }) {
 
 const styles = StyleSheet.create({
   image: {
-    height: 150,
-    width: 150,
-    borderRadius: 50,
+    height: 120,
+    width: 120,
+    borderRadius: 60,
     borderColor: Colors.lightGrey,
     borderWidth: 2,
   },

@@ -31,6 +31,7 @@ function Message({
   replyMessageAbove,
   time,
   onSelectReply,
+  imageMessage,
   children,
 }) {
   const { userData } = useSelector((state) => state);
@@ -123,6 +124,7 @@ function Message({
             styles.contain,
             styles[type],
             (isHeart || heartDataArray.length > 0) && { marginBottom: 20 },
+            imageMessage && { paddingVertical: 0, paddingRight: 0 },
           ]}
         >
           {replyMessageAbove && (
@@ -133,6 +135,7 @@ function Message({
                   backgroundColor:
                     type == "friendMessage" ? "#1c2124" : "#054d2e",
                 },
+                imageMessage && { marginRight: 7, marginTop: 5 },
               ]}
             >
               <Text style={styles.nameReply}>{replyMessageAbove.lastName}</Text>
@@ -141,8 +144,17 @@ function Message({
               </Text>
             </View>
           )}
-          <Text style={styles.message}>{children}</Text>
+          {imageMessage ? (
+            <View
+              style={styles.imageContainReplace}
+            >
+              <Image source={{ uri: imageMessage }} style={styles.image} />
+            </View>
+          ) : (
+            <Text style={styles.message}>{children}</Text>
+          )}
           <Text style={styles.time}>{time}</Text>
+
           <View
             style={[
               styles.heartContainer,
@@ -190,6 +202,25 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
 
+  //image
+
+  imageContainReplace: {
+    maxWidth: 300,
+    overflow: "hidden",
+    borderColor: Colors.message,
+    borderWidth: 4,
+    borderRadius: 10,
+  },
+
+  image: {
+    width: 300,
+    height: 300,
+    resizeMode: "cover",
+    borderRadius: 10,
+  },
+
+  //replymessage
+
   containReplyMessage: {
     opacity: 0.8,
     borderLeftColor: "#ff00d0",
@@ -234,12 +265,14 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     paddingBottom: 6,
   },
+
+  //heartIcon
   heartContainer: {
     flexDirection: "row",
     alignItems: "center",
     position: "absolute",
-    bottom: -16,
-    right: -9,
+    bottom: -24,
+    right: 2,
     backgroundColor: "#2e3132",
     padding: 5,
     borderRadius: 10,
@@ -254,9 +287,27 @@ const styles = StyleSheet.create({
     bottom: 2,
     right: 16,
     letterSpacing: 0.3,
-    color: Colors.grey,
+    color: "white",
     fontSize: 13,
   },
 });
 
 export default Message;
+
+//            <Image
+//               source={{ uri: imageMessage }}
+//               style={{
+//                 width: "100%",
+//                 height: "100%",
+//                 // resizeMode: "contain",
+//               }}
+//             />
+// imageMessage && {
+//   backgroundColor: "transparent",
+//   borderColor: Colors.message,
+//   borderWidth: 4,
+//   width: 300,
+//   height: 300,
+//   paddingVertical: 0,
+//   paddingRight: 0,
+// },

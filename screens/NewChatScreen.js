@@ -21,7 +21,7 @@ function NewChatScreen({ navigation }) {
   const [searchValue, setSearchValue] = useState("");
   const [listUsers, setListUsers] = useState();
   const [showLoading, setShowLoading] = useState(false);
-  const userData = useSelector((state) => state.userData);
+  const { userData, chatsData } = useSelector((state) => state);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -41,7 +41,8 @@ function NewChatScreen({ navigation }) {
 
   const handleNavigate = (data) => {
     dispatch(setStoreFriendChat(data));
-    navigation.navigate("chatDetail");
+    if (data?.chatId) navigation.navigate("chatDetail", data.chatId);
+    else navigation.navigate("chatDetail");
   };
   return (
     <TouchableWithoutFeedback style={{ flex: 1 }} onPress={Keyboard.dismiss}>
@@ -88,13 +89,21 @@ function NewChatScreen({ navigation }) {
             >
               <FlatList
                 data={listUsers}
-                renderItem={(item) => (
-                  <UserItem
-                    data={item.item}
-                    index={item.index}
-                    onPress={() => handleNavigate(item.item)}
-                  />
-                )}
+                renderItem={({ item, index }) => {
+                  const hitoryConversation = Object.values(chatsData).find(
+                    (data) => data.users.includes(item.userId)
+                  );
+                  const data = {...item};
+                  if (hitoryConversation && hitoryConversation.users.includes(item.userId))
+                    data.chatId = hitoryConversation.key;
+                  return (
+                    <UserItem
+                      data={item}
+                      index={index}
+                      onPress={() => handleNavigate(data)}
+                    />
+                  );
+                }}
                 keyExtractor={(item) => item.userId}
                 style={{
                   borderTopColor: Colors.border,

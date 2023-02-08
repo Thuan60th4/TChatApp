@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 
 import ChatListScreen from "../../screens/ChatListScreen";
@@ -71,23 +70,14 @@ function BottomTab() {
             </TouchableOpacity>
           ),
           headerRight: () => (
-            <View style={styles.wrapIcon}>
-              <IconButtom
-                Icon={Feather}
-                style={styles.headerIcon}
-                name="camera"
-                size={22}
-                color={Colors.blue}
-              />
-              <IconButtom
-                onPress={() => navigation.navigate("newChat")}
-                Icon={FontAwesome}
-                style={[styles.headerIcon, { marginTop: 2 }]}
-                name="pencil-square-o"
-                size={22}
-                color={Colors.blue}
-              />
-            </View>
+            <IconButtom
+              onPress={() => navigation.navigate("newChat")}
+              Icon={FontAwesome}
+              style={styles.headerIcon}
+              name="pencil-square-o"
+              size={22}
+              color={Colors.blue}
+            />
           ),
         })}
       />
@@ -175,15 +165,12 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     color: Colors.blue,
   },
-  wrapIcon: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
+
   headerIcon: {
     padding: 7,
+    marginTop: 2,
     marginLeft: 7,
+    marginRight: 10,
   },
 });
 

@@ -137,7 +137,7 @@ export const updateUserData = async (userId, newData) => {
   }
 };
 
-export const uploadImageToFirebase = async (uri) => {
+export const uploadImageToFirebase = async (uri, folder) => {
   const blob = await new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.onload = function () {
@@ -152,7 +152,9 @@ export const uploadImageToFirebase = async (uri) => {
     xhr.send(null);
   });
 
-  const fileRef = refStorage(getStorage(), `profilePics/${uuidv4()}`);
+  const folderPics = folder || "profilePics";
+
+  const fileRef = refStorage(getStorage(), `${folderPics}/${uuidv4()}`);
   const result = await uploadBytes(fileRef, blob);
 
   // We're done with the blob, close and release it
@@ -184,10 +186,15 @@ export const searchUsers = async (queryText) => {
   }
 };
 
-export const createChat = async (loggedInUserId, idUsersInChat, content) => {
+export const createChat = async (
+  loggedInUserId,
+  idUsersInChat,
+  content,
+  imgUrl = ""
+) => {
   const chatData = {
     users: idUsersInChat,
-    lastMessageText: content,
+    lastMessageText: imgUrl ? "Sent a message" : content,
     createtedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createtedBy: loggedInUserId,
@@ -202,6 +209,7 @@ export const createChat = async (loggedInUserId, idUsersInChat, content) => {
       sentBy: loggedInUserId,
       sentAt: new Date().toISOString(),
       text: content,
+      imageUrl: imgUrl,
     });
 
     return chatKey.key;
@@ -211,11 +219,12 @@ export const createChat = async (loggedInUserId, idUsersInChat, content) => {
   }
 };
 
-export const sendTextMessage = async (
+export const sendMessage = async (
   chatId,
   senderId,
   content,
-  messageReplyId
+  messageReplyId,
+  imageUrl
 ) => {
   const timeSend = new Date().toISOString();
   const messageData = {
@@ -224,13 +233,15 @@ export const sendTextMessage = async (
     text: content,
   };
   if (messageReplyId) messageData.messageReplyId = messageReplyId;
+
+  if (imageUrl) messageData.imageUrl = imageUrl;
+
   try {
     await push(ref(db, "messages/" + chatId), messageData);
-
     await update(ref(db, "chats/" + chatId), {
       updatedAt: timeSend,
       updatedBy: senderId,
-      lastMessageText: content,
+      lastMessageText: imageUrl? 'Sent a picture' : content,
     });
   } catch (error) {
     console.log(error);
