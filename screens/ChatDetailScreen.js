@@ -1,15 +1,14 @@
 import {
   ActivityIndicator,
+  FlatList,
   Image,
   ImageBackground,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,11 +16,9 @@ import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AwesomeAlert from "react-native-awesome-alerts";
 import { useSelector } from "react-redux";
-import { useCallback, useLayoutEffect, useState } from "react";
-import { FlatList } from "react-native-gesture-handler";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 import { openCameraImage, openLibraryImage } from "../utils/accessImage";
-
 import { Colors } from "../constants/colors";
 import IconButtom from "../components/IconButtom";
 import { createChat, sendMessage, uploadImageToFirebase } from "../firebase";
@@ -34,8 +31,9 @@ function ChatDetailScreen({ route, navigation }) {
   const [replying, setReplying] = useState();
   const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
+  const flatlist = useRef();
 
-  const { friendChatData, userData, storedUsers, messagesData } = useSelector(
+  const { guestChatData, userData, storedUsers, messagesData } = useSelector(
     (state) => state
   );
   const messageLists = useSelector((state) => {
@@ -53,26 +51,23 @@ function ChatDetailScreen({ route, navigation }) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      headerTitle: () => (
-        <Text
-          style={styles.name}
-        >{`${friendChatData.firstName} ${friendChatData.lastName}`}</Text>
-      ),
+      headerTitle: () => <Text style={styles.name}>{guestChatData.title}</Text>,
       headerRight: () => (
         <TouchableOpacity>
           <Image
             style={styles.image}
             source={
-              friendChatData.avatar
-                ? { uri: friendChatData.avatar }
+              guestChatData.avatar
+                ? { uri: guestChatData.avatar }
                 : require("../assets/image/noAvatar.jpeg")
             }
           />
         </TouchableOpacity>
       ),
     });
-  }, [friendChatData]);
+  }, [guestChatData]);
 
+  // send messages
   const handleSendMessage = useCallback(async () => {
     setTextInputValue("");
     setReplying();
@@ -87,8 +82,11 @@ function ChatDetailScreen({ route, navigation }) {
       //Nếu ko có chatId thì mới tạo chat mới
       const chatKey = await createChat(
         userData.userId,
-        [userData.userId, friendChatData.userId],
-        textInputValue
+        guestChatData.guestChatDataId.concat(userData.userId),
+        textInputValue,
+        "",
+        guestChatData.title,
+        guestChatData.isGroup
       );
       if (chatKey) {
         setChatId(chatKey);
@@ -96,7 +94,7 @@ function ChatDetailScreen({ route, navigation }) {
     }
   }, [textInputValue, chatId]);
 
-  //image
+  //open native feature
 
   const chooseImgFromLib = useCallback(async () => {
     const imageResult = await openLibraryImage();
@@ -111,6 +109,8 @@ function ChatDetailScreen({ route, navigation }) {
       setImageUri(imageResult);
     }
   }, [imageUri]);
+
+  // Send image
 
   const handleUploadImage = useCallback(async () => {
     try {
@@ -129,9 +129,11 @@ function ChatDetailScreen({ route, navigation }) {
         //Nếu ko có chatId thì mới tạo chat mới
         const chatKey = await createChat(
           userData.userId,
-          [userData.userId, friendChatData.userId],
+          guestChatData.guestChatDataId.concat(userData.userId),
           "Image",
-          urlImg
+          urlImg,
+          guestChatData.title,
+          guestChatData.isGroup
         );
         if (chatKey) {
           setChatId(chatKey);
@@ -146,24 +148,32 @@ function ChatDetailScreen({ route, navigation }) {
   }, [imageUri]);
 
   return (
-    <KeyboardAvoidingView
+    <ImageBackground
+      source={require("../assets/image/background.jpg")}
       style={styles.conatiner}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={74}
     >
-      <ImageBackground
-        source={require("../assets/image/background.jpg")}
+      <KeyboardAvoidingView
         style={styles.conatiner}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={74}
       >
         <View style={styles.conatiner}>
+
+          {/* Message */}
           {chatId ? (
             <FlatList
+              ref={flatlist}
+              onContentSizeChange={() =>
+                flatlist.current.scrollToEnd({ animated: false })
+              }
+              // onLayout={() => flatlist.current.scrollToEnd({ animated: false })}
               data={messageLists}
               renderItem={({ item, index }) => {
                 const type =
                   item.sentBy == userData.userId
                     ? "ownMessage"
                     : "friendMessage";
+
                 let messageReplyAbove;
                 if (item.messageReplyId) {
                   let replyUserKey =
@@ -178,6 +188,14 @@ function ChatDetailScreen({ route, navigation }) {
                   };
                 }
 
+                let name = "";
+                let avatar = "";
+
+                if (guestChatData.isGroup && item.sentBy != userData.userId) {
+                  let userDetail = storedUsers[item.sentBy];
+                  name = userDetail.lastName;
+                  avatar = userDetail.avatar;
+                }
                 return (
                   <Message
                     type={type}
@@ -192,6 +210,8 @@ function ChatDetailScreen({ route, navigation }) {
                       setReplying({ ...item, ...storedUsers[item.sentBy] });
                     }}
                     imageMessage={item.imageUrl}
+                    sentByName={name}
+                    avatar={avatar}
                   >
                     {item.text}
                   </Message>
@@ -208,6 +228,8 @@ function ChatDetailScreen({ route, navigation }) {
             </View>
           )}
         </View>
+
+        {/* Reply */}
         {replying && (
           <ReplyMessage
             name={
@@ -221,6 +243,8 @@ function ChatDetailScreen({ route, navigation }) {
             }}
           />
         )}
+
+        {/* Input */}
         <View style={styles.wrapInputUser}>
           <IconButtom
             onPress={chooseImgFromLib}
@@ -249,16 +273,17 @@ function ChatDetailScreen({ route, navigation }) {
             </View>
           ) : (
             <IconButtom
-            Icon={Feather}
-            style={styles.icon}
-            name="camera"
-            size={25}
-            color={Colors.blue}
-            onPress={takePhoto}
+              Icon={Feather}
+              style={styles.icon}
+              name="camera"
+              size={25}
+              color={Colors.blue}
+              onPress={takePhoto}
             />
           )}
         </View>
 
+        {/* Modal */}
         <AwesomeAlert
           show={!!imageUri}
           title="Send image?"
@@ -289,8 +314,8 @@ function ChatDetailScreen({ route, navigation }) {
             </View>
           }
         />
-      </ImageBackground>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 const styles = StyleSheet.create({

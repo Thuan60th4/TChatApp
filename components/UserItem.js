@@ -1,16 +1,24 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+
 import { Colors } from "../constants/colors";
 
-function UserItem({ data, index,onPress, subTitle, style }) {
-
+function UserItem({
+  index,
+  onPress,
+  avatar,
+  chatName,
+  subTitle,
+  style,
+  isGroupChat = undefined,
+  isChecked,
+}) {
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <Image
         style={styles.image}
         source={
-          data?.avatar
-            ? { uri: data.avatar }
-            : require("../assets/image/noAvatar.jpeg")
+          avatar ? { uri: avatar } : require("../assets/image/noAvatar.jpeg")
         }
       />
       <View
@@ -24,8 +32,24 @@ function UserItem({ data, index,onPress, subTitle, style }) {
           },
         ]}
       >
-        <Text style={styles.name}>{`${data?.firstName} ${data.lastName}`}</Text>
-        <Text numberOfLines={1} style={styles.email}>{subTitle || data.email}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.name}>{chatName}</Text>
+          <Text numberOfLines={1} style={styles.email}>
+            {subTitle}
+          </Text>
+        </View>
+        {isGroupChat && (
+          <View
+            style={[
+              styles.checkboxContainer,
+              isChecked && {
+                backgroundColor: Colors.primary,
+              },
+            ]}
+          >
+            <Ionicons name="checkmark" size={18} color="black" />
+          </View>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -43,6 +67,8 @@ const styles = StyleSheet.create({
     marginRight: 15,
   },
   InfoUser: {
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
     paddingVertical: 15,
   },
@@ -54,6 +80,13 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 16,
     color: Colors.grey,
+  },
+
+  checkboxContainer: {
+    padding: 2,
+    borderColor: Colors.grey,
+    borderWidth: 1,
+    borderRadius: 50,
   },
 });
 

@@ -33,6 +33,8 @@ function Message({
   onSelectReply,
   imageMessage,
   children,
+  sentByName,
+  avatar,
 }) {
   const { userData } = useSelector((state) => state);
   const [heartDataArray, setHeartDataArray] = useState([]);
@@ -122,57 +124,98 @@ function Message({
         <View
           style={[
             styles.contain,
-            styles[type],
-            (isHeart || heartDataArray.length > 0) && { marginBottom: 20 },
-            imageMessage && { paddingVertical: 0, paddingRight: 0 },
+            { alignSelf: type == "ownMessage" ? "flex-end" : "flex-start" },
           ]}
         >
-          {replyMessageAbove && (
-            <View
-              style={[
-                styles.containReplyMessage,
-                {
-                  backgroundColor:
-                    type == "friendMessage" ? "#1c2124" : "#054d2e",
-                },
-                imageMessage && { marginRight: 7, marginTop: 5 },
-              ]}
-            >
-              <Text style={styles.nameReply}>{replyMessageAbove.lastName}</Text>
-              <Text numberOfLines={1} style={styles.contentReply}>
-                {replyMessageAbove.text}
-              </Text>
-            </View>
-          )}
-          {imageMessage ? (
-            <View
-              style={styles.imageContainReplace}
-            >
-              <Image source={{ uri: imageMessage }} style={styles.image} />
-            </View>
-          ) : (
-            <Text style={styles.message}>{children}</Text>
-          )}
-          <Text style={styles.time}>{time}</Text>
-
-          <View
-            style={[
-              styles.heartContainer,
-              { opacity: heartDataArray.length > 0 ? 1 : 0 },
-            ]}
-          >
-            <Animated.Image
-              style={[styles.heartIcon, heartAnimation]}
-              source={require("../assets/image/heart.png")}
+          {avatar != "" && (
+            <Image
+              source={
+                avatar
+                  ? { uri: avatar }
+                  : require("../assets/image/noAvatar.jpeg")
+              }
+              style={styles.avatar}
             />
-            {heartDataArray.length > 1 && (
-              <Text style={{ color: "white", marginLeft: 4, fontSize: 12 }}>
-                {heartDataArray.length}
+          )}
+
+          <View style={{ marginHorizontal: 15, maxWidth: "70%" }}>
+            {sentByName && (
+              <Text
+                style={{
+                  color: Colors.lightGrey,
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  marginBottom: 5,
+                }}
+              >
+                {sentByName}
               </Text>
             )}
+            <View
+              style={[
+                styles.containMessage,
+                {
+                  backgroundColor:
+                    type == "ownMessage"
+                      ? Colors.message
+                      : Colors.friendMessage,
+                },
+                imageMessage && { paddingVertical: 0, paddingRight: 0 },
+              ]}
+            >
+              {replyMessageAbove && (
+                <View
+                  style={[
+                    styles.containReplyMessage,
+                    {
+                      backgroundColor:
+                        type == "friendMessage" ? "#1c2124" : "#054d2e",
+                    },
+                    imageMessage && { marginRight: 7, marginTop: 5 },
+                  ]}
+                >
+                  <Text style={styles.nameReply}>
+                    {replyMessageAbove.lastName}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.contentReply}>
+                    {replyMessageAbove.text}
+                  </Text>
+                </View>
+              )}
+
+              {imageMessage ? (
+                <View style={styles.imageContainReplace}>
+                  <Image source={{ uri: imageMessage }} style={styles.image} />
+                </View>
+              ) : (
+                <Text style={styles.message}>{children}</Text>
+              )}
+              <Text style={styles.time}>{time}</Text>
+
+              {/* Icon heart */}
+
+              <View
+                style={[
+                  styles.heartContainer,
+                  { opacity: heartDataArray.length > 0 ? 1 : 0 },
+                ]}
+              >
+                <Animated.Image
+                  style={[styles.heartIcon, heartAnimation]}
+                  source={require("../assets/image/heart.png")}
+                />
+                {heartDataArray.length > 1 && (
+                  <Text style={{ color: "white", marginLeft: 4, fontSize: 12 }}>
+                    {heartDataArray.length}
+                  </Text>
+                )}
+              </View>
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* Menu modal */}
       <Menu name={index} ref={menuRef} style={styles[type]}>
         <MenuTrigger />
         <MenuOptions>
@@ -194,10 +237,20 @@ function Message({
 
 const styles = StyleSheet.create({
   contain: {
-    marginVertical: 10,
-    marginHorizontal: 20,
+    flexDirection: "row",
+    marginVertical: 15,
+  },
+
+  avatar: {
+    width: 45,
+    height: 45,
+    borderRadius: 22,
+    alignSelf: "flex-end",
+  },
+
+  //phải có backgroundColor mới boderRadius đc
+  containMessage: {
     borderRadius: 10,
-    maxWidth: "70%",
     paddingVertical: 10,
     paddingRight: 10,
   },
@@ -246,15 +299,6 @@ const styles = StyleSheet.create({
     color: "#af93aa",
   },
 
-  //phải có backgroundColor mới boderRadius đc
-  ownMessage: {
-    backgroundColor: Colors.message,
-    alignSelf: "flex-end",
-  },
-  friendMessage: {
-    backgroundColor: Colors.friendMessage,
-    alignSelf: "flex-start",
-  },
   message: {
     // maxWidth: "80%",
     minWidth: 100,
@@ -263,7 +307,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     lineHeight: 21,
     paddingLeft: 10,
-    paddingBottom: 6,
+    paddingBottom: 8,
   },
 
   //heartIcon
@@ -284,10 +328,10 @@ const styles = StyleSheet.create({
 
   time: {
     position: "absolute",
-    bottom: 2,
-    right: 16,
+    bottom: 1,
+    right: 10,
     letterSpacing: 0.3,
-    color: "white",
+    color: Colors.lightGrey,
     fontSize: 13,
   },
 });

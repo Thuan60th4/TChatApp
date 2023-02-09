@@ -5,7 +5,7 @@ const ActionSlice = createSlice({
   initialState: {
     token: "",
     userData: {},
-    friendChatData: {},
+    guestChatData: {},
     chatsData: {},
     storedUsers: {},
     messagesData: {},
@@ -18,8 +18,8 @@ const ActionSlice = createSlice({
     updateDataState: (state, action) => {
       state.userData = { ...state.userData, ...action.payload };
     },
-    setStoreFriendChat: (state, action) => {
-      state.friendChatData = action.payload;
+    setStoreGuestChat: (state, action) => {
+      state.guestChatData = action.payload;
     },
     setChatsData: (state, action) => {
       // nó bị lỗi gì mà chỉ đọc chứ ko ghi được ấy nên phải dùng cách này để copy lại object r ghi vào
@@ -40,7 +40,7 @@ const ActionSlice = createSlice({
 export const {
   authenticate,
   updateDataState,
-  setStoreFriendChat,
+  setStoreGuestChat,
   setChatsData,
   setStoredUsers,
   setChatMessages,

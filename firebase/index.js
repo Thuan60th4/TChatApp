@@ -190,11 +190,15 @@ export const createChat = async (
   loggedInUserId,
   idUsersInChat,
   content,
-  imgUrl = ""
+  imgUrl = "",
+  title,
+  isGroup = false
 ) => {
   const chatData = {
     users: idUsersInChat,
-    lastMessageText: imgUrl ? "Sent a message" : content,
+    chatName: title,
+    isGroup: isGroup,
+    lastMessageText: imgUrl ? "Sent a picture" : content,
     createtedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     createtedBy: loggedInUserId,
@@ -241,7 +245,7 @@ export const sendMessage = async (
     await update(ref(db, "chats/" + chatId), {
       updatedAt: timeSend,
       updatedBy: senderId,
-      lastMessageText: imageUrl? 'Sent a picture' : content,
+      lastMessageText: imageUrl ? "Sent a picture" : content,
     });
   } catch (error) {
     console.log(error);
