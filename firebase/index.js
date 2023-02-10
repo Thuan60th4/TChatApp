@@ -152,9 +152,7 @@ export const uploadImageToFirebase = async (uri, folder) => {
     xhr.send(null);
   });
 
-  const folderPics = folder || "profilePics";
-
-  const fileRef = refStorage(getStorage(), `${folderPics}/${uuidv4()}`);
+  const fileRef = refStorage(getStorage(), `${folder}/${uuidv4()}`);
   const result = await uploadBytes(fileRef, blob);
 
   // We're done with the blob, close and release it
@@ -196,7 +194,7 @@ export const createChat = async (
 ) => {
   const chatData = {
     users: idUsersInChat,
-    chatName: title,
+    title: title,
     isGroup: isGroup,
     lastMessageText: imgUrl ? "Sent a picture" : content,
     createtedAt: new Date().toISOString(),
@@ -220,6 +218,16 @@ export const createChat = async (
   } catch (error) {
     console.log(error);
     return false;
+  }
+};
+
+export const updateChat = async (chatId, chatData) => {
+  try {
+    await update(ref(db, "chats/" + chatId), {
+      ...chatData,
+    });
+  } catch (error) {
+    console.log(error);
   }
 };
 

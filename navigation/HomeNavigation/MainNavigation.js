@@ -12,6 +12,9 @@ import SettingScreen from "../../screens/SettingScreen";
 import { Colors } from "../../constants/colors";
 import NewChatScreen from "../../screens/NewChatScreen";
 import IconButtom from "../../components/IconButtom";
+import ContactScreen from "../../screens/ContactScreen";
+import GroupChatSettingScreen from "../../screens/GroupChatSettingScreen";
+import ModalChangeScreen from "../../screens/ModalChangeScreen";
 
 const Stack = createStackNavigator();
 const Bottom = createBottomTabNavigator();
@@ -100,7 +103,7 @@ function MainNavigation() {
   return (
     <Stack.Navigator
       screenOptions={{
-        gestureEnabled: true, // giúp android cũng có thể gàn ngang để trở về như ios
+        gestureEnabled: true, // giúp android cũng có thể gàt ngang để trở về như ios
         headerTitleAlign: "center",
         headerTintColor: "white",
       }}
@@ -125,6 +128,53 @@ function MainNavigation() {
           headerBackTitleVisible: false,
           headerShadowVisible: false,
         }}
+      />
+
+      <Stack.Screen
+        name="contact"
+        component={ContactScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: Colors.space,
+          },
+          headerTintColor: Colors.blue,
+          headerBackTitleVisible: false,
+          headerShadowVisible: false,
+          headerTitle: "",
+        }}
+      />
+
+      <Stack.Screen
+        name="groupChatSetting"
+        component={GroupChatSettingScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: Colors.space,
+          },
+          headerTintColor: Colors.blue,
+          headerBackTitleVisible: false,
+          headerShadowVisible: false,
+          headerTitle: "",
+        }}
+      />
+
+      <Stack.Screen
+        name="modalchange"
+        component={ModalChangeScreen}
+        options={({ navigation }) => ({
+          headerStyle: {
+            backgroundColor: Colors.space,
+          },
+          presentation: "modal",
+          headerTintColor: Colors.blue,
+          headerShadowVisible: false,
+          headerTitle: "",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.editText}>Cancel</Text>
+            </TouchableOpacity>
+          ),
+        })}
       />
 
       <Stack.Screen
@@ -162,7 +212,7 @@ const styles = StyleSheet.create({
   editText: {
     fontSize: 19,
     color: "black",
-    marginLeft: 12,
+    marginHorizontal: 12,
     color: Colors.blue,
   },
 

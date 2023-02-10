@@ -26,12 +26,15 @@ function ChatListScreen({ navigation }) {
         data={allChatData}
         renderItem={(item) => {
           const chatData = item.item;
+
           let image = "";
           let name = "";
+          let about = "";
+
           if (chatData.isGroup) {
-            name = chatData.chatName;
-            image =
-              "https://firebasestorage.googleapis.com/v0/b/tchatapp-c6b2c.appspot.com/o/profilePics%2Fb676832d-6f8c-48db-a20e-bd3fd53919db?alt=media&token=bed2edf7-7089-442e-b98f-64da8f445252";
+            name = chatData.title;
+            image = chatData.avatar;
+            // image = require("../assets/image/groupAvatar.png");
           } else {
             const otherUserId = chatData.users.find(
               (uid) => uid !== userData.userId
@@ -43,10 +46,11 @@ function ChatListScreen({ navigation }) {
             if (!otherUser) return;
             image = otherUser.avatar;
             name = `${otherUser.firstName} ${otherUser.lastName}`;
+            about = otherUser.about;
           }
           return (
             <UserItem
-              index={item.index}
+              isGroupList={chatData.isGroup}
               avatar={image}
               chatName={name}
               subTitle={chatData.lastMessageText}
@@ -55,10 +59,9 @@ function ChatListScreen({ navigation }) {
                 dispatch(
                   setStoreGuestChat({
                     title: name,
-                    guestChatDataId: chatData.users.filter(
-                      (id) => id != userData.userId
-                    ),
+                    guestChatDataId: chatData.users,
                     avatar: image,
+                    about: about,
                     isGroup: chatData.isGroup,
                   })
                 );

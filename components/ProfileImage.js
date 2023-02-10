@@ -21,7 +21,7 @@ function ProfileImage({ userData }) {
 
       if (imageUri) {
         setLoading(true);
-        const urlImg = await uploadImageToFirebase(imageUri);
+        const urlImg = await uploadImageToFirebase(imageUri,"profilePics");
         const avatar = { avatar: urlImg };
         await updateUserData(userData.userId, avatar);
         dispatch(updateDataState(avatar));
@@ -38,7 +38,7 @@ function ProfileImage({ userData }) {
 
       if (imageUri) {
         setLoading(true);
-        const urlImg = await uploadImageToFirebase(imageUri);
+        const urlImg = await uploadImageToFirebase(imageUri,"profilePics");
         const avatar = { avatar: urlImg };
         await updateUserData(userData.userId, avatar);
         dispatch(updateDataState(avatar));

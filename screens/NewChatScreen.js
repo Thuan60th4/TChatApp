@@ -61,6 +61,7 @@ function NewChatScreen({ navigation, route }) {
         //   "https://firebasestorage.googleapis.com/v0/b/tchatapp-c6b2c.appspot.com/o/profilePics%2Fb676832d-6f8c-48db-a20e-bd3fd53919db?alt=media&token=bed2edf7-7089-442e-b98f-64da8f445252",
       })
     );
+    navigation.popToTop();
     navigation.navigate("chatDetail");
   };
 
@@ -101,6 +102,7 @@ function NewChatScreen({ navigation, route }) {
           title: `${data.firstName} ${data.lastName}`,
           guestChatDataId: [data.userId],
           avatar: data.avatar,
+          about: data.about,
         })
       );
       if (data?.chatId) navigation.navigate("chatDetail", data.chatId);
@@ -220,14 +222,14 @@ function NewChatScreen({ navigation, route }) {
                   const data = { ...item };
                   if (!isGroupChat) {
                     const hitoryConversation = Object.values(chatsData).find(
-                      (data) => data.users.includes(item.userId)
+                      (data) =>
+                        !data.isGroup && data.users.includes(item.userId)
                     );
-                    if (hitoryConversation && !hitoryConversation.isGroup)
+                    if (hitoryConversation)
                       data.chatId = hitoryConversation.key;
                   }
                   return (
                     <UserItem
-                      index={index}
                       avatar={item.avatar}
                       chatName={`${item.firstName} ${item.lastName}`}
                       subTitle={item.email}

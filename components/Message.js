@@ -14,6 +14,7 @@ import {
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
+import { v4 as uuidv4 } from "uuid";
 
 import { Colors } from "../constants/colors";
 import { useSelector } from "react-redux";
@@ -40,6 +41,8 @@ function Message({
   const [heartDataArray, setHeartDataArray] = useState([]);
   const [isHeart, setIsheart] = useState(false);
 
+  const id = useRef(uuidv4());
+
   const menuRef = useRef();
   const timePress = useRef();
   const heartValueAnimate = useRef(new Animated.Value(0)).current;
@@ -47,7 +50,7 @@ function Message({
     if (isHeart) {
       Animated.timing(heartValueAnimate, {
         toValue: 1,
-        duration: 700,
+        duration: 600,
         useNativeDriver: true,
         // useNativeDriver: true, native drive là đẩy mấy cái luồng animation
         //  sang luồng native gốc để tối ưu hiệu năng nhưng nó chỉ hỗ trợ mấy cái mà ko bị thay đổi layout (transform,opacity,border,...)
@@ -100,7 +103,7 @@ function Message({
 
   const handleDoubleTap = () => {
     const now = new Date();
-    const delay = 700;
+    const delay = 600;
     if (
       timePress.current &&
       now - timePress.current < delay
@@ -118,7 +121,7 @@ function Message({
       <TouchableWithoutFeedback
         onPress={handleDoubleTap}
         onLongPress={() => {
-          menuRef.current.props.ctx.menuActions.openMenu(index);
+          menuRef.current.props.ctx.menuActions.openMenu(id.current);
         }}
       >
         <View
@@ -216,7 +219,7 @@ function Message({
       </TouchableWithoutFeedback>
 
       {/* Menu modal */}
-      <Menu name={index} ref={menuRef} style={styles[type]}>
+      <Menu name={id.current} ref={menuRef} style={styles[type]}>
         <MenuTrigger />
         <MenuOptions>
           <MenuOption onSelect={() => onSelectReply()} text="Reply" />

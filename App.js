@@ -28,10 +28,10 @@ function Root() {
         const result = await AsyncStorage.getItem("token");
         if (result) {
           const token = JSON.parse(result);
-          if (new Date(token.expiryDateToken) >= new Date()) {
-            const userData = await getUserData(token.userId);
-            dispatch(authenticate({ token, userData }));
-          }
+          // if (new Date(token.expiryDateToken) >= new Date()) {
+          const userData = await getUserData(token.userId);
+          dispatch(authenticate({ token, userData }));
+          // }
         }
       } catch (error) {
         console.log(error);

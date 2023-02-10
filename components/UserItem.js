@@ -4,39 +4,42 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../constants/colors";
 
 function UserItem({
-  index,
   onPress,
   avatar,
   chatName,
   subTitle,
   style,
   isGroupChat = undefined,
+  isGroupList,
   isChecked,
+  type,
+  size, //chỉ có trong groupchat thôi
 }) {
   return (
     <TouchableOpacity style={[styles.container, style]} onPress={onPress}>
       <Image
-        style={styles.image}
+        style={[styles.image, size && { width: size, height: size }]}
         source={
-          avatar ? { uri: avatar } : require("../assets/image/noAvatar.jpeg")
+          avatar
+            ? { uri: avatar }
+            : isGroupList
+            ? require("../assets/image/groupAvatar.png")
+            : require("../assets/image/noAvatar.jpeg")
         }
       />
       <View
         style={[
           styles.InfoUser,
-          index > 0 && {
-            borderBottomWidth: 1,
-            borderTopWidth: 1,
-            borderTopColor: Colors.border,
-            borderBottomColor: Colors.border,
-          },
+          size && { minHeight: size + 15 },
         ]}
       >
         <View style={{ flex: 1 }}>
           <Text style={styles.name}>{chatName}</Text>
-          <Text numberOfLines={1} style={styles.email}>
-            {subTitle}
-          </Text>
+          {subTitle && (
+            <Text numberOfLines={1} style={styles.email}>
+              {subTitle}
+            </Text>
+          )}
         </View>
         {isGroupChat && (
           <View
@@ -49,6 +52,9 @@ function UserItem({
           >
             <Ionicons name="checkmark" size={18} color="black" />
           </View>
+        )}
+        {type == "link" && (
+          <Ionicons name="chevron-forward" size={24} color={Colors.grey} />
         )}
       </View>
     </TouchableOpacity>
@@ -71,6 +77,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
     paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   name: {
     fontSize: 18,

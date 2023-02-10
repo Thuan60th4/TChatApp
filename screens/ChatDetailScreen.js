@@ -53,12 +53,21 @@ function ChatDetailScreen({ route, navigation }) {
     navigation.setOptions({
       headerTitle: () => <Text style={styles.name}>{guestChatData.title}</Text>,
       headerRight: () => (
-        <TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate(
+              guestChatData.isGroup ? "groupChatSetting" : "contact",
+              chatId
+            )
+          }
+        >
           <Image
             style={styles.image}
             source={
               guestChatData.avatar
                 ? { uri: guestChatData.avatar }
+                : guestChatData.isGroup
+                ? require("../assets/image/groupAvatar.png")
                 : require("../assets/image/noAvatar.jpeg")
             }
           />
@@ -158,7 +167,6 @@ function ChatDetailScreen({ route, navigation }) {
         keyboardVerticalOffset={74}
       >
         <View style={styles.conatiner}>
-
           {/* Message */}
           {chatId ? (
             <FlatList
