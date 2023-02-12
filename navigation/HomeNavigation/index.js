@@ -17,9 +17,10 @@ const auth = getAuth();
 const db = getDatabase();
 
 function HomeNavigation() {
-  const userData = useSelector((state) => state.userData);
+  const { userData, storedUsers } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const userChatsRef = ref(db, `userChats/${userData.userId}`);
 
@@ -28,7 +29,10 @@ function HomeNavigation() {
     onValue(userChatsRef, (snapshot) => {
       const chatIdsData = snapshot.val() || {};
       const chatIds = Object.values(chatIdsData);
-
+      // if (chatIds.length == 0) {
+      //   dispatch(setChatsData());
+      //   setIsLoading(false);
+      // }
       const chatsData = {};
       let chatsFoundCount = 0;
 
@@ -40,14 +44,20 @@ function HomeNavigation() {
           chatsFoundCount++;
           const data = chatSnapshot.val();
           if (data) {
-            for (const userId of data.users) {
-              // if (userData.userId != userId) {
-                get(ref(db, `users/${userId}`)).then((userSnapshot) => {
-                  const userSnapshotData = userSnapshot.val();
-                  dispatch(setStoredUsers(userSnapshotData));
-                });
-              // }
+            //nếu bị xóa rồi thì off đi và retủn để cho nó ko lữu cái này vô chatsData
+            if (data.newUsers && !data.newUsers.includes(userData.userId)) {
+              off(ref(db, `chats/${chatId}`));
+              return;
             }
+
+            data.users.forEach((userId) => {
+              if (storedUsers?.[userId]) return;
+              get(ref(db, `users/${userId}`)).then((userSnapshot) => {
+                const userSnapshotData = userSnapshot.val();
+                dispatch(setStoredUsers(userSnapshotData));
+              });
+            });
+
             //thêm vào để làm khóa cho chỗ flatlist cho dễ
             data.key = chatSnapshot.key;
             // chatsData = { ...chatsData, [chatSnapshot.key]: data };
@@ -68,6 +78,7 @@ function HomeNavigation() {
       }
       //cho vô trong sao nó lặp được vì lúc đầu nó ko có trò chuyện nào
       if (chatsFoundCount == 0) {
+        dispatch(setChatsData());
         setIsLoading(false);
       }
     });

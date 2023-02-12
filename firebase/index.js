@@ -10,10 +10,12 @@ import {
   endAt,
   get,
   getDatabase,
+  off,
   orderByChild,
   push,
   query,
   ref,
+  remove,
   set,
   startAt,
   update,
@@ -231,12 +233,60 @@ export const updateChat = async (chatId, chatData) => {
   }
 };
 
+export const removeOnechat = async (chatId, userRemovedId) => {
+  try {
+    const userChatsRef = await get(ref(db, `userChats/${userRemovedId}`));
+    const listChat = userChatsRef.val();
+    for (const key in listChat) {
+      if (listChat[key] == chatId) {
+        await remove(ref(db, `userChats/${userRemovedId}/${key}`));
+        break;
+      }
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const removeUserFromChat = async (
+  chatId,
+  userLoggedInData,
+  newListUser,
+  messageText
+) => {
+  try {
+    const chatRef = ref(db, "chats/" + chatId);
+    if (newListUser.length == 0) {
+      await remove(chatRef);
+      await remove(ref(db, "messages/" + chatId));
+
+      return;
+    }
+    await update(chatRef, {
+      newUsers: newListUser,
+      updatedAt: new Date().toISOString(),
+      updatedBy: userLoggedInData,
+    });
+    await sendMessage(
+      chatId,
+      userLoggedInData,
+      messageText,
+      null,
+      null,
+      "info"
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const sendMessage = async (
   chatId,
   senderId,
   content,
   messageReplyId,
-  imageUrl
+  imageUrl,
+  type
 ) => {
   const timeSend = new Date().toISOString();
   const messageData = {
@@ -247,6 +297,8 @@ export const sendMessage = async (
   if (messageReplyId) messageData.messageReplyId = messageReplyId;
 
   if (imageUrl) messageData.imageUrl = imageUrl;
+
+  if (type) messageData.type = type;
 
   try {
     await push(ref(db, "messages/" + chatId), messageData);

@@ -50,7 +50,7 @@ function UserItem({
               },
             ]}
           >
-            <Ionicons name="checkmark" size={18} color="black" />
+            <Ionicons name="checkmark" size={18} color={Colors.space} />
           </View>
         )}
         {type == "link" && (

@@ -26,7 +26,6 @@ const db = getDatabase();
 
 function Message({
   type,
-  index,
   messageId,
   chatId,
   replyMessageAbove,
@@ -121,13 +120,17 @@ function Message({
       <TouchableWithoutFeedback
         onPress={handleDoubleTap}
         onLongPress={() => {
-          menuRef.current.props.ctx.menuActions.openMenu(id.current);
+          type != "info" &&
+            menuRef.current.props.ctx.menuActions.openMenu(id.current);
         }}
       >
         <View
           style={[
             styles.contain,
-            { alignSelf: type == "ownMessage" ? "flex-end" : "flex-start" },
+            {
+              alignSelf: type == "ownMessage" ? "flex-end" : "flex-start",
+            },
+            type == "info" && { alignSelf: "center" },
           ]}
         >
           {avatar != "" && (
@@ -141,7 +144,12 @@ function Message({
             />
           )}
 
-          <View style={{ marginHorizontal: 15, maxWidth: "70%" }}>
+          <View
+            style={[
+              { marginHorizontal: 15, maxWidth: "70%" },
+              type == "info" && { maxWidth: "90%" },
+            ]}
+          >
             {sentByName && (
               <Text
                 style={{
@@ -154,6 +162,7 @@ function Message({
                 {sentByName}
               </Text>
             )}
+
             <View
               style={[
                 styles.containMessage,
@@ -164,8 +173,10 @@ function Message({
                       : Colors.friendMessage,
                 },
                 imageMessage && { paddingVertical: 0, paddingRight: 0 },
+                type == "info" && { backgroundColor: "transparent" },
               ]}
             >
+              {/* reply */}
               {replyMessageAbove && (
                 <View
                   style={[
@@ -191,35 +202,55 @@ function Message({
                   <Image source={{ uri: imageMessage }} style={styles.image} />
                 </View>
               ) : (
-                <Text style={styles.message}>{children}</Text>
+                <Text
+                  style={[
+                    styles.message,
+                    type == "info" && {
+                      width: "100%",
+                      fontSize: 14,
+                      color: Colors.lightGrey,
+                      textAlign: "center",
+                    },
+                  ]}
+                >
+                  {children}
+                </Text>
               )}
-              <Text style={styles.time}>{time}</Text>
+
+              {type != "info" && <Text style={styles.time}>{time}</Text>}
 
               {/* Icon heart */}
-
-              <View
-                style={[
-                  styles.heartContainer,
-                  { opacity: heartDataArray.length > 0 ? 1 : 0 },
-                ]}
-              >
-                <Animated.Image
-                  style={[styles.heartIcon, heartAnimation]}
-                  source={require("../assets/image/heart.png")}
-                />
-                {heartDataArray.length > 1 && (
-                  <Text style={{ color: "white", marginLeft: 4, fontSize: 12 }}>
-                    {heartDataArray.length}
-                  </Text>
-                )}
-              </View>
+              {type != "info" && (
+                <View
+                  style={[
+                    styles.heartContainer,
+                    { opacity: heartDataArray.length > 0 ? 1 : 0 },
+                  ]}
+                >
+                  <Animated.Image
+                    style={[styles.heartIcon, heartAnimation]}
+                    source={require("../assets/image/heart.png")}
+                  />
+                  {heartDataArray.length > 1 && (
+                    <Text
+                      style={{ color: "white", marginLeft: 4, fontSize: 12 }}
+                    >
+                      {heartDataArray.length}
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </View>
       </TouchableWithoutFeedback>
 
       {/* Menu modal */}
-      <Menu name={id.current} ref={menuRef} style={styles[type]}>
+      <Menu
+        name={id.current}
+        ref={menuRef}
+        style={{ alignSelf: type == "ownMessage" ? "flex-end" : "flex-start" }}
+      >
         <MenuTrigger />
         <MenuOptions>
           <MenuOption onSelect={() => onSelectReply()} text="Reply" />

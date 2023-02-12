@@ -9,6 +9,7 @@ const ActionSlice = createSlice({
     chatsData: {},
     storedUsers: {},
     messagesData: {},
+    loadRemoveUsers: 0,
   },
   reducers: {
     authenticate: (state, action) => {
@@ -34,6 +35,9 @@ const ActionSlice = createSlice({
       const { chatId, messagesData } = action.payload;
       state.messagesData[chatId] = messagesData;
     },
+    setLoadRemoveUsers: (state, action) => {
+      state.loadRemoveUsers = action.payload;
+    },
   },
 });
 
@@ -44,6 +48,7 @@ export const {
   setChatsData,
   setStoredUsers,
   setChatMessages,
+  setLoadRemoveUsers,
 } = ActionSlice.actions;
 
 export default ActionSlice.reducer;

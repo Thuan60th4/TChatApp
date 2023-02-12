@@ -39,13 +39,13 @@ function ModalChangeScreen({ navigation, route }) {
 
         if (textInputValue != guestChatData.title || imgUrl) {
           chatData.title = textInputValue;
-          await updateChat(route.params, chatData);
           dispatch(
             setStoreGuestChat({
               ...guestChatData,
               ...chatData,
             })
           );
+          await updateChat(route.params, chatData);
         }
         navigation.goBack();
       } else {

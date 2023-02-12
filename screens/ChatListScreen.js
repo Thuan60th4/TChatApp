@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,12 +8,21 @@ import { Colors } from "../constants/colors";
 import { setStoreGuestChat } from "../store/ActionSlice";
 
 function ChatListScreen({ navigation }) {
+  // const [numberOfUsers, setNumberOfUsers] = useState();
   const { storedUsers, chatsData, userData } = useSelector((state) => state);
   const dispatch = useDispatch();
 
   const allChatData = Object.values(chatsData).sort((a, b) => {
     return new Date(b.updatedAt) - new Date(a.updatedAt);
   });
+
+  // useEffect(() => {
+  //   setNumberOfUsers(allChatData.length);
+
+  //   if (numberOfUsers > allChatData.length) {
+  //     dispatch(setLoadRemoveUsers(Math.random()));
+  //   }
+  // }, [allChatData.length]);
 
   return (
     <View style={styles.container}>
@@ -59,10 +69,11 @@ function ChatListScreen({ navigation }) {
                 dispatch(
                   setStoreGuestChat({
                     title: name,
-                    guestChatDataId: chatData.users,
+                    guestChatDataId: chatData.newUsers || chatData.users,
                     avatar: image,
                     about: about,
                     isGroup: chatData.isGroup,
+                    key: chatData.key,
                   })
                 );
                 navigation.navigate("chatDetail", chatData.key);

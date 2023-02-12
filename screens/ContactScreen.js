@@ -8,13 +8,16 @@ import { setStoreGuestChat } from "../store/ActionSlice";
 function ContactScreen({ navigation }) {
   const { guestChatData, userData } = useSelector((state) => state);
   const groupCommon = useSelector((state) => {
-    const groupChatCommon = Object.values(state.chatsData).filter(
-      (chat) =>
+    const groupChatCommon = Object.values(state.chatsData).filter((chat) => {
+      const chatList = chat.newUsers || chat.users;
+      return (
         chat.isGroup &&
-        chat.users.includes(
+        chatList.includes(
           guestChatData.guestChatDataId.find((id) => id != userData.userId)
         )
-    );
+      );
+    });
+
     return groupChatCommon;
   });
 

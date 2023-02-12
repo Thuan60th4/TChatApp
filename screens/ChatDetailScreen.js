@@ -15,8 +15,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AwesomeAlert from "react-native-awesome-alerts";
-import { useSelector } from "react-redux";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { openCameraImage, openLibraryImage } from "../utils/accessImage";
 import { Colors } from "../constants/colors";
@@ -24,6 +30,7 @@ import IconButtom from "../components/IconButtom";
 import { createChat, sendMessage, uploadImageToFirebase } from "../firebase";
 import Message from "../components/Message";
 import ReplyMessage from "../components/ReplyMessage";
+import { setStoreGuestChat } from "../store/ActionSlice";
 
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
@@ -31,11 +38,11 @@ function ChatDetailScreen({ route, navigation }) {
   const [replying, setReplying] = useState();
   const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
   const flatlist = useRef();
 
-  const { guestChatData, userData, storedUsers, messagesData } = useSelector(
-    (state) => state
-  );
+  const { guestChatData, userData, storedUsers, messagesData, chatsData } =
+    useSelector((state) => state);
   const messageLists = useSelector((state) => {
     if (!chatId) return [];
     const messagesData = state.messagesData[chatId];
@@ -49,17 +56,29 @@ function ChatDetailScreen({ route, navigation }) {
     return allMessages;
   });
 
+  useEffect(() => {
+    if (chatId && guestChatData.isGroup) {
+      let chatListUsers =
+        chatsData[chatId]?.newUsers || chatsData[chatId]?.users || [];
+
+      if (!chatListUsers.includes(userData.userId)) {
+        navigation.navigate("home");
+      }
+    }
+  }, [chatsData]);
+
+  //title
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: () => <Text style={styles.name}>{guestChatData.title}</Text>,
       headerRight: () => (
         <TouchableOpacity
-          onPress={() =>
-            navigation.navigate(
-              guestChatData.isGroup ? "groupChatSetting" : "contact",
-              chatId
-            )
-          }
+          onPress={() => {
+            if (!guestChatData.isGroup) navigation.navigate("contact", chatId);
+            else if (chatId) {
+              navigation.navigate("groupChatSetting", chatId);
+            }
+          }}
         >
           <Image
             style={styles.image}
@@ -74,7 +93,7 @@ function ChatDetailScreen({ route, navigation }) {
         </TouchableOpacity>
       ),
     });
-  }, [guestChatData]);
+  }, [guestChatData, chatId]);
 
   // send messages
   const handleSendMessage = useCallback(async () => {
@@ -120,7 +139,6 @@ function ChatDetailScreen({ route, navigation }) {
   }, [imageUri]);
 
   // Send image
-
   const handleUploadImage = useCallback(async () => {
     try {
       setLoading(true);
@@ -163,7 +181,7 @@ function ChatDetailScreen({ route, navigation }) {
     >
       <KeyboardAvoidingView
         style={styles.conatiner}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={Platform.OS === "ios" ? "padding" : ""}
         keyboardVerticalOffset={74}
       >
         <View style={styles.conatiner}>
@@ -177,10 +195,12 @@ function ChatDetailScreen({ route, navigation }) {
               // onLayout={() => flatlist.current.scrollToEnd({ animated: false })}
               data={messageLists}
               renderItem={({ item, index }) => {
-                const type =
+                let type =
                   item.sentBy == userData.userId
                     ? "ownMessage"
                     : "friendMessage";
+
+                if (item.type == "info") type = item.type;
 
                 let messageReplyAbove;
                 if (item.messageReplyId) {
@@ -199,7 +219,11 @@ function ChatDetailScreen({ route, navigation }) {
                 let name = "";
                 let avatar = "";
 
-                if (guestChatData.isGroup && item.sentBy != userData.userId) {
+                if (
+                  type != "info" &&
+                  guestChatData.isGroup &&
+                  item.sentBy != userData.userId
+                ) {
                   let userDetail = storedUsers[item.sentBy];
                   name = userDetail.lastName;
                   avatar = userDetail.avatar;

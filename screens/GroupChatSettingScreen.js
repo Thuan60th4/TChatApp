@@ -8,16 +8,35 @@ import {
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import { useActionSheet } from "@expo/react-native-action-sheet";
 
 import UserItem from "../components/UserItem";
 import { Colors } from "../constants/colors";
 import { setStoreGuestChat } from "../store/ActionSlice";
+import { removeOnechat, removeUserFromChat } from "../firebase";
+import CustomButtom from "../components/CustomButtom";
 
 function GroupChatSettingScreen({ navigation, route }) {
+  const { showActionSheetWithOptions } = useActionSheet();
+
   const { guestChatData, storedUsers, chatsData, userData } = useSelector(
     (state) => state
   );
+
+  let chatListUsers =
+    chatsData[route.params]?.newUsers || chatsData[route.params]?.users || [];
+
   const dispatch = useDispatch();
+
+  // useEffect(() => {
+  //   // if (!chatListUsers.includes(userData.userId)) {
+  //   //   // console.log(chatListUsers);
+  //   //   dispatch(setLoadRemoveUsers(Math.random()));
+  //   //   // navigation.replace("home");
+  //   // }
+
+  //   console.log(chatListUsers);
+  // }, [chatsData]);
 
   const handleNavigate = (data) => {
     dispatch(
@@ -33,76 +52,136 @@ function GroupChatSettingScreen({ navigation, route }) {
     else navigation.push("chatDetail");
   };
 
+  const handleRemoveUser = async (data) => {
+    const guestChatDataId = chatListUsers.filter((uid) => uid != data.userId);
+    const messageText = `${userData.lastName} removed ${data.fullName} from the chat`;
+
+    await removeUserFromChat(
+      route.params,
+      userData.userId,
+      guestChatDataId,
+      messageText
+    );
+    await removeOnechat(route.params, data.userId);
+  };
+
+  const handleActionSheet = (data) => {
+    showActionSheetWithOptions(
+      {
+        options: ["Message", "Remove from group", "Cancel"],
+        tintColor: "#11a0ff",
+        destructiveButtonIndex: 1,
+        destructiveColor: "red",
+        cancelButtonIndex: 2,
+      },
+      async (buttonIndex) => {
+        if (buttonIndex === 0) {
+          handleNavigate(data);
+        } else if (buttonIndex === 1) {
+          await handleRemoveUser(data);
+        }
+      }
+    );
+  };
+
+  const handleLeaveGroup = async () => {
+    const guestChatDataId = chatListUsers.filter(
+      (uid) => uid != userData.userId
+    );
+    const messageText = `${userData.fullName} left the group chat`;
+
+    await removeUserFromChat(
+      route.params,
+      userData.userId,
+      guestChatDataId,
+      messageText
+    );
+
+    await removeOnechat(route.params, userData.userId);
+
+    navigation.navigate("home");
+  };
+
   return (
     <View style={styles.contain}>
-      <View style={styles.infoContact}>
-        <Image
-          style={styles.avatar}
-          source={
-            guestChatData.avatar
-              ? { uri: guestChatData.avatar }
-              : require("../assets/image/groupAvatar.png")
-          }
-        />
-        <Text style={styles.name}>{guestChatData.title}</Text>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("modalchange", route.params)}
-        >
-          <Text style={styles.changeNameImage}>Change name or image</Text>
-        </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <View style={styles.infoContact}>
+          <Image
+            style={styles.avatar}
+            source={
+              guestChatData.avatar
+                ? { uri: guestChatData.avatar }
+                : require("../assets/image/groupAvatar.png")
+            }
+          />
+          <Text style={styles.name}>{guestChatData.title}</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("modalchange", route.params)}
+          >
+            <Text style={styles.changeNameImage}>Change name or image</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.addUserBtn}>
-          <Ionicons name="person-add-sharp" size={28} color={Colors.blue} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ marginTop: 30 }}>
-        <View
-          style={{
-            borderBottomColor: Colors.border,
-            borderBottomWidth: 1,
-            marginBottom: 7,
-          }}
-        >
-          <Text
-            style={styles.participantsText}
-          >{`${guestChatData.guestChatDataId.length} Participants`}</Text>
+          <TouchableOpacity style={styles.addUserBtn}>
+            <Ionicons name="person-add-sharp" size={28} color={Colors.blue} />
+          </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={guestChatData.guestChatDataId}
-          renderItem={({ item }) => {
-            let data = storedUsers[item];
-            if (!data) return;
+        <View style={{ marginTop: 30 }}>
+          <View
+            style={{
+              borderBottomColor: Colors.border,
+              borderBottomWidth: 1,
+              marginBottom: 7,
+            }}
+          >
+            <Text
+              style={styles.participantsText}
+            >{`${chatListUsers.length} Participants`}</Text>
+          </View>
 
-            let image = data.avatar;
-            let name =
-              userData.userId != item
-                ? `${data.firstName} ${data.lastName}`
-                : "you";
+          <FlatList
+            data={chatListUsers}
+            renderItem={({ item }) => {
+              let data = storedUsers[item];
+              if (!data) return;
 
-            const hitoryConversation = Object.values(chatsData).find(
-              (data) =>
-                !data.isGroup &&
-                userData.userId != item &&
-                data.users.includes(item)
-            );
-            if (hitoryConversation) {
-              data = { ...data, chatId: hitoryConversation.key };
-            }
-            return (
-              <UserItem
-                avatar={image}
-                chatName={name}
-                type={userData.userId != item && "link"}
-                size={45}
-                style={{ marginLeft: 15 }}
-                onPress={() => userData.userId != item && handleNavigate(data)}
-              />
-            );
-          }}
-        />
+              let image = data.avatar;
+              let name =
+                userData.userId != item
+                  ? `${data.firstName} ${data.lastName}`
+                  : "you";
+
+              const hitoryConversation = Object.values(chatsData).find(
+                (data) =>
+                  !data.isGroup &&
+                  userData.userId != item &&
+                  data.users.includes(item)
+              );
+              if (hitoryConversation) {
+                data = { ...data, chatId: hitoryConversation.key };
+              }
+              return (
+                <UserItem
+                  avatar={image}
+                  chatName={name}
+                  type={userData.userId != item && "link"}
+                  size={45}
+                  style={{ marginLeft: 15 }}
+                  onPress={() =>
+                    userData.userId != item && handleActionSheet(data)
+                  }
+                />
+              );
+            }}
+          />
+        </View>
       </View>
+      <CustomButtom
+        style={{ backgroundColor: "red" }}
+        onPress={handleLeaveGroup}
+      >
+        Leave chat
+      </CustomButtom>
     </View>
   );
 }
