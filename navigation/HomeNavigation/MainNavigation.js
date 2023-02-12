@@ -15,6 +15,7 @@ import IconButtom from "../../components/IconButtom";
 import ContactScreen from "../../screens/ContactScreen";
 import GroupChatSettingScreen from "../../screens/GroupChatSettingScreen";
 import ModalChangeScreen from "../../screens/ModalChangeScreen";
+import MembersScreen from "../../screens/MembersScreen";
 
 const Stack = createStackNavigator();
 const Bottom = createBottomTabNavigator();
@@ -105,7 +106,10 @@ function MainNavigation() {
       screenOptions={{
         gestureEnabled: true, // giúp android cũng có thể gàt ngang để trở về như ios
         headerTitleAlign: "center",
-        headerTintColor: "white",
+        headerTintColor: Colors.blue,
+        headerStyle: {
+          backgroundColor: Colors.space,
+        },
       }}
     >
       <Stack.Screen
@@ -119,12 +123,7 @@ function MainNavigation() {
         name="chatDetail"
         component={ChatDetailScreen}
         options={{
-          headerTitleAlign: "center",
-          headerStyle: {
-            backgroundColor: Colors.space,
-          },
           // headerBackTitleStyle :{color: Colors.blue},
-          headerTintColor: Colors.blue,
           headerBackTitleVisible: false,
           headerShadowVisible: false,
         }}
@@ -134,10 +133,6 @@ function MainNavigation() {
         name="contact"
         component={ContactScreen}
         options={{
-          headerStyle: {
-            backgroundColor: Colors.space,
-          },
-          headerTintColor: Colors.blue,
           headerBackTitleVisible: false,
           headerShadowVisible: false,
           headerTitle: "",
@@ -148,10 +143,6 @@ function MainNavigation() {
         name="groupChatSetting"
         component={GroupChatSettingScreen}
         options={{
-          headerStyle: {
-            backgroundColor: Colors.space,
-          },
-          headerTintColor: Colors.blue,
           headerBackTitleVisible: false,
           headerShadowVisible: false,
           headerTitle: "",
@@ -159,14 +150,20 @@ function MainNavigation() {
       />
 
       <Stack.Screen
+        name="members"
+        component={MembersScreen}
+        options={{
+          headerBackTitleVisible: false,
+          headerBackTitleStyle: { color: Colors.blue },
+          headerTitleStyle: { color: "white" },
+        }}
+      />
+
+      <Stack.Screen
         name="modalchange"
         component={ModalChangeScreen}
         options={({ navigation }) => ({
-          headerStyle: {
-            backgroundColor: Colors.space,
-          },
           presentation: "modal",
-          headerTintColor: Colors.blue,
           headerShadowVisible: false,
           headerTitle: "",
           headerLeft: () => (
@@ -189,7 +186,7 @@ function MainNavigation() {
           title: "New Chat",
           headerBackTitleVisible: false,
           headerShadowVisible: false,
-
+          headerTitleStyle: { color: "white" },
           headerLeft: "",
           headerRight: () => (
             <IconButtom
@@ -201,7 +198,6 @@ function MainNavigation() {
               color={Colors.grey}
             />
           ),
-          headerStyle: { backgroundColor: Colors.space, borderBottomWidth: 0 },
         })}
       />
     </Stack.Navigator>

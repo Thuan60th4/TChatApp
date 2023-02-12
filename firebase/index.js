@@ -280,6 +280,40 @@ export const removeUserFromChat = async (
   }
 };
 
+export const addUserToChat = async (
+  chatId,
+  userLoggedInData,
+  newListUser,
+  newUser,
+  listWantAdd,
+  messageText
+) => {
+  try {
+    const chatRef = ref(db, "chats/" + chatId);
+    await update(chatRef, {
+      newUsers: newListUser,
+      users: newUser,
+      updatedAt: new Date().toISOString(),
+      updatedBy: userLoggedInData,
+    });
+
+    await sendMessage(
+      chatId,
+      userLoggedInData,
+      messageText,
+      null,
+      null,
+      "info"
+    );
+
+    for (const userId of listWantAdd) {
+      await push(ref(db, "userChats/" + userId), chatId);
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const sendMessage = async (
   chatId,
   senderId,

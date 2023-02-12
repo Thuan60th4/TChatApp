@@ -15,6 +15,7 @@ import { Colors } from "../constants/colors";
 import { setStoreGuestChat } from "../store/ActionSlice";
 import { removeOnechat, removeUserFromChat } from "../firebase";
 import CustomButtom from "../components/CustomButtom";
+import { handleActionSheet } from "../utils/handleActionSheetUser";
 
 function GroupChatSettingScreen({ navigation, route }) {
   const { showActionSheetWithOptions } = useActionSheet();
@@ -65,25 +66,6 @@ function GroupChatSettingScreen({ navigation, route }) {
     await removeOnechat(route.params, data.userId);
   };
 
-  const handleActionSheet = (data) => {
-    showActionSheetWithOptions(
-      {
-        options: ["Message", "Remove from group", "Cancel"],
-        tintColor: "#11a0ff",
-        destructiveButtonIndex: 1,
-        destructiveColor: "red",
-        cancelButtonIndex: 2,
-      },
-      async (buttonIndex) => {
-        if (buttonIndex === 0) {
-          handleNavigate(data);
-        } else if (buttonIndex === 1) {
-          await handleRemoveUser(data);
-        }
-      }
-    );
-  };
-
   const handleLeaveGroup = async () => {
     const guestChatDataId = chatListUsers.filter(
       (uid) => uid != userData.userId
@@ -121,12 +103,26 @@ function GroupChatSettingScreen({ navigation, route }) {
             <Text style={styles.changeNameImage}>Change name or image</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.addUserBtn}>
+          <TouchableOpacity
+            style={styles.addUserBtn}
+            onPress={() =>
+              navigation.navigate("newChat", {
+                chatId: route.params,
+                isGroupChat: true,
+              })
+            }
+          >
             <Ionicons name="person-add-sharp" size={28} color={Colors.blue} />
           </TouchableOpacity>
         </View>
 
-        <View style={{ marginTop: 30 }}>
+        <View
+          style={{
+            marginTop: 30,
+            // flex: 1,
+            paddingBottom: 10,
+          }}
+        >
           <View
             style={{
               borderBottomColor: Colors.border,
@@ -138,9 +134,9 @@ function GroupChatSettingScreen({ navigation, route }) {
               style={styles.participantsText}
             >{`${chatListUsers.length} Participants`}</Text>
           </View>
-
           <FlatList
-            data={chatListUsers}
+            // style={{ flex: 1 }}
+            data={chatListUsers.slice(0, 4)}
             renderItem={({ item }) => {
               let data = storedUsers[item];
               if (!data) return;
@@ -168,12 +164,34 @@ function GroupChatSettingScreen({ navigation, route }) {
                   size={45}
                   style={{ marginLeft: 15 }}
                   onPress={() =>
-                    userData.userId != item && handleActionSheet(data)
+                    userData.userId != item &&
+                    handleActionSheet(
+                      data,
+                      showActionSheetWithOptions,
+                      handleNavigate,
+                      handleRemoveUser
+                    )
                   }
                 />
               );
             }}
           />
+          {chatListUsers.length > 4 && (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("members", route.params)}
+            >
+              <Text
+                style={{
+                  color: Colors.lightGrey,
+                  fontSize: 17,
+                  marginTop: 10,
+                  alignSelf: "center",
+                }}
+              >
+                View all members
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
       <CustomButtom

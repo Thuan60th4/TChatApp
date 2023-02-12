@@ -18,7 +18,7 @@ import { useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Colors } from "../constants/colors";
-import { searchUsers } from "../firebase";
+import { addUserToChat, searchUsers } from "../firebase";
 import UserItem from "../components/UserItem";
 import { setStoreGuestChat } from "../store/ActionSlice";
 
@@ -34,7 +34,15 @@ function NewChatScreen({ navigation, route }) {
   const flatlist = useRef();
 
   const dispatch = useDispatch();
+
   const isGroupChat = route?.params?.isGroupChat;
+  const chatId = route?.params?.chatId;
+  let newUsers;
+  let users;
+  if (chatId) {
+    newUsers = chatsData[chatId]?.newUsers || chatsData[chatId]?.users || [];
+    users = chatsData[chatId]?.users || [];
+  }
 
   useEffect(() => {
     if (searchValue.trim()) {
@@ -42,6 +50,15 @@ function NewChatScreen({ navigation, route }) {
         setShowLoading(true);
         const result = await searchUsers(searchValue);
         delete result[userData.userId];
+
+        if (chatId) {
+          for (const key in result) {
+            if (newUsers.includes(key)) {
+              delete result[key];
+            }
+          }
+        }
+
         setListUsers(Object.values(result));
         setShowLoading(false);
       }, 500);
@@ -51,49 +68,81 @@ function NewChatScreen({ navigation, route }) {
     }
   }, [searchValue]);
 
+  // create Group
   const handleCreateGroup = () => {
     dispatch(
       setStoreGuestChat({
         title: chatName,
         guestChatDataId: selectedUsers.map((item) => item.userId),
         isGroup: true,
-        // avatar:
-        //   "https://firebasestorage.googleapis.com/v0/b/tchatapp-c6b2c.appspot.com/o/profilePics%2Fb676832d-6f8c-48db-a20e-bd3fd53919db?alt=media&token=bed2edf7-7089-442e-b98f-64da8f445252",
       })
     );
     navigation.popToTop();
     navigation.navigate("chatDetail");
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerLeft: () =>
-        isGroupChat && (
-          <TouchableOpacity
-            onPress={
-              chatName.trim() && selectedUsers.length >= 1
-                ? handleCreateGroup
-                : () => {
-                    Alert.alert(
-                      "Invalid group",
-                      "Please enter a group name and add a few members"
-                    );
-                  }
-            }
-          >
+  const createGroupBtn = () => {
+    if (chatName.trim() && selectedUsers.length >= 1) handleCreateGroup();
+    else {
+      Alert.alert(
+        "Invalid group",
+        "Please enter a group name and add a few members"
+      );
+    }
+  };
+
+  //add users
+  const handleAddUsers = async () => {
+    if (selectedUsers.length >= 1) {
+      const addList = selectedUsers.map((item) => item.userId);
+
+      const newUsersList = newUsers.concat(addList);
+      const usersList = users.concat(addList);
+
+      let messageText;
+      if (selectedUsers.length >= 2) {
+        messageText = `${userData.lastName} added ${
+          selectedUsers[0].fullName
+        } and ${selectedUsers.length - 1} others to the chat`;
+      } else {
+        messageText = `${userData.lastName} added ${selectedUsers[0].fullName} to the chat`;
+      }
+
+      await addUserToChat(
+        chatId,
+        userData.userId,
+        newUsersList,
+        usersList,
+        addList,
+        messageText
+      );
+      navigation.goBack();
+    }
+  };
+
+  //title
+  if (chatId || isGroupChat) {
+    useLayoutEffect(() => {
+      navigation.setOptions({
+        title: !chatId ? "New Chat" : "Add Users",
+        headerLeft: () => (
+          <TouchableOpacity onPress={!chatId ? createGroupBtn : handleAddUsers}>
             <Text
               style={[
                 styles.createText,
                 chatName.trim() &&
                   selectedUsers.length >= 1 && { color: Colors.blue },
+
+                chatId && selectedUsers.length >= 1 && { color: Colors.blue },
               ]}
             >
-              Create
+              {!chatId ? "Create" : "Add"}
             </Text>
           </TouchableOpacity>
         ),
-    });
-  }, [chatName, selectedUsers]);
+      });
+    }, [chatName, selectedUsers]);
+  }
 
   const handleNavigate = (data) => {
     if (!isGroupChat) {
@@ -112,7 +161,11 @@ function NewChatScreen({ navigation, route }) {
         .map((item) => item.userId)
         .includes(data.userId)
         ? selectedUsers.filter((user) => user.userId != data.userId)
-        : selectedUsers.concat({ avatar: data?.avatar, userId: data.userId });
+        : selectedUsers.concat({
+            avatar: data?.avatar,
+            userId: data.userId,
+            fullName: data.fullName,
+          });
 
       setSelectedUsers(listUsersChecked);
     }
@@ -122,13 +175,15 @@ function NewChatScreen({ navigation, route }) {
       <View style={styles.container}>
         {isGroupChat && (
           <>
-            <TextInput
-              style={styles.textInputGroupName}
-              placeholder="Enter your name group"
-              placeholderTextColor={Colors.grey}
-              value={chatName}
-              onChangeText={setChatName}
-            />
+            {!chatId && (
+              <TextInput
+                style={styles.textInputGroupName}
+                placeholder="Enter your name group"
+                placeholderTextColor={Colors.grey}
+                value={chatName}
+                onChangeText={setChatName}
+              />
+            )}
             {selectedUsers.length >= 0 && (
               <View style={{ marginHorizontal: 20 }}>
                 <FlatList
