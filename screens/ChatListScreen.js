@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -26,7 +32,6 @@ function ChatListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.headerText}>Chats</Text>
       <TouchableOpacity
         onPress={() => navigation.navigate("newChat", { isGroupChat: true })}
       >
@@ -95,13 +100,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "black",
-  },
-  headerText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 35,
-    paddingBottom: 10,
-    marginLeft: 6,
+    paddingTop: Platform.OS == "ios" ? 15 : 10,
   },
   newGroup: {
     color: Colors.blue,

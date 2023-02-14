@@ -68,11 +68,7 @@ function BottomTab() {
           tabBarIcon: ({ size, color }) => (
             <Ionicons name="chatbubbles-outline" size={size} color={color} />
           ),
-          headerLeft: () => (
-            <TouchableOpacity>
-              <Text style={styles.editText}>Edit</Text>
-            </TouchableOpacity>
-          ),
+          headerLeft: () => <Text style={styles.headerText}>Chats</Text>,
           headerRight: () => (
             <IconButtom
               onPress={() => navigation.navigate("newChat")}
@@ -91,6 +87,7 @@ function BottomTab() {
         options={{
           title: "Settings",
           headerTitle: "",
+          headerLeft: () => <Text style={styles.headerText}>Settings</Text>,
           tabBarIcon: ({ size, color }) => (
             <SimpleLineIcons name="settings" size={size} color={color} />
           ),
@@ -212,6 +209,12 @@ const styles = StyleSheet.create({
     color: Colors.blue,
   },
 
+  headerText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 35,
+    marginLeft: 6,
+  },
   headerIcon: {
     padding: 7,
     marginTop: 2,

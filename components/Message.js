@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { Colors } from "../constants/colors";
 import { useSelector } from "react-redux";
-import { addHeartMessage } from "../firebase";
+import { addHeartMessage, unsentMessage } from "../firebase";
 import { getDatabase, off, onValue, ref } from "firebase/database";
 import { app } from "../firebase/initalFirebase";
 
@@ -35,6 +35,7 @@ function Message({
   children,
   sentByName,
   avatar,
+  unsend,
 }) {
   const { userData } = useSelector((state) => state);
   const [heartDataArray, setHeartDataArray] = useState([]);
@@ -101,17 +102,27 @@ function Message({
   };
 
   const handleDoubleTap = () => {
-    const now = new Date();
-    const delay = 600;
-    if (
-      timePress.current &&
-      now - timePress.current < delay
-      // && !isAnimated.current
-    ) {
-      updateValueHeart();
-      // isAnimated.current = true;
-    } else {
-      timePress.current = now;
+    if (type != "info" && !unsend) {
+      const now = new Date();
+      const delay = 600;
+      if (
+        timePress.current &&
+        now - timePress.current < delay
+        // && !isAnimated.current
+      ) {
+        updateValueHeart();
+        // isAnimated.current = true;
+      } else {
+        timePress.current = now;
+      }
+    }
+  };
+
+  const handleDeleteMessage = async () => {
+    try {
+      await unsentMessage(chatId, messageId, userData.lastName);
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -121,6 +132,7 @@ function Message({
         onPress={handleDoubleTap}
         onLongPress={() => {
           type != "info" &&
+            !unsend &&
             menuRef.current.props.ctx.menuActions.openMenu(id.current);
         }}
       >
@@ -173,7 +185,10 @@ function Message({
                       : Colors.friendMessage,
                 },
                 imageMessage && { paddingVertical: 0, paddingRight: 0 },
-                type == "info" && { backgroundColor: "transparent" },
+                (type == "info" || unsend) && {
+                  backgroundColor: "transparent",
+                },
+                unsend && styles.unsend,
               ]}
             >
               {/* reply */}
@@ -217,14 +232,16 @@ function Message({
                 </Text>
               )}
 
-              {type != "info" && <Text style={styles.time}>{time}</Text>}
+              {type != "info" && !unsend && (
+                <Text style={styles.time}>{time}</Text>
+              )}
 
               {/* Icon heart */}
-              {type != "info" && (
+              {type != "info" && !unsend && heartDataArray.length > 0 && (
                 <View
                   style={[
                     styles.heartContainer,
-                    { opacity: heartDataArray.length > 0 ? 1 : 0 },
+                    // { opacity: heartDataArray.length > 0 ? 1 : 0 },
                   ]}
                 >
                   <Animated.Image
@@ -233,7 +250,11 @@ function Message({
                   />
                   {heartDataArray.length > 1 && (
                     <Text
-                      style={{ color: "white", marginLeft: 4, fontSize: 12 }}
+                      style={{
+                        color: "white",
+                        marginLeft: 4,
+                        fontSize: 12,
+                      }}
                     >
                       {heartDataArray.length}
                     </Text>
@@ -260,9 +281,11 @@ function Message({
             }}
             text="Copy"
           />
-          <MenuOption onSelect={() => alert(`Delete`)}>
-            <Text style={{ color: "red" }}>Delete</Text>
-          </MenuOption>
+          {type == "ownMessage" && (
+            <MenuOption onSelect={handleDeleteMessage}>
+              <Text style={{ color: "red" }}>Unsend</Text>
+            </MenuOption>
+          )}
         </MenuOptions>
       </Menu>
     </View>
@@ -368,24 +391,15 @@ const styles = StyleSheet.create({
     color: Colors.lightGrey,
     fontSize: 13,
   },
+
+  unsend: {
+    borderColor: Colors.lightGrey,
+    borderWidth: 2,
+    borderRadius: 20,
+    paddingTop: 7,
+    paddingBottom: 0,
+  },
 });
 
 export default Message;
 
-//            <Image
-//               source={{ uri: imageMessage }}
-//               style={{
-//                 width: "100%",
-//                 height: "100%",
-//                 // resizeMode: "contain",
-//               }}
-//             />
-// imageMessage && {
-//   backgroundColor: "transparent",
-//   borderColor: Colors.message,
-//   borderWidth: 4,
-//   width: 300,
-//   height: 300,
-//   paddingVertical: 0,
-//   paddingRight: 0,
-// },

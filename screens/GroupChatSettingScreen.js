@@ -97,6 +97,7 @@ function GroupChatSettingScreen({ navigation, route }) {
             }
           />
           <Text style={styles.name}>{guestChatData.title}</Text>
+          
           <TouchableOpacity
             onPress={() => navigation.navigate("modalchange", route.params)}
           >

@@ -50,8 +50,6 @@ function AuthForm() {
       style={{ flex: 1, backgroundColor: "black" }}
       extraScrollHeight={50}
     >
-      <Text style={styles.headerText}> Settings</Text>
-
       <View style={styles.wrapper}>
         <ProfileImage userData={userData} />
         <Formik
@@ -196,12 +194,6 @@ function AuthForm() {
 }
 
 const styles = StyleSheet.create({
-  headerText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 35,
-    paddingBottom: 10,
-  },
   wrapper: {
     flex: 1,
     padding: 20,

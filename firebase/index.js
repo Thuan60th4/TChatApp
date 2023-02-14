@@ -404,3 +404,21 @@ export const sendNotifications = async (chatId, chatUsers, title, body) => {
     console.log(error);
   }
 };
+
+export const unsentMessage = async (chatId, messageId, name) => {
+  try {
+    await update(ref(db, `messages/${chatId}/${messageId}`), {
+      heart: [],
+      text: "Unsent a message",
+      imageUrl: "",
+      unsend :true
+    });
+
+    await update(ref(db, "chats/" + chatId), {
+      updatedAt: new Date().toISOString(),
+      lastMessageText: `${name} unsent a message`,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};

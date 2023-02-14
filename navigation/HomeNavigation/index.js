@@ -51,10 +51,9 @@ function HomeNavigation() {
       Notifications.addNotificationResponseReceivedListener((response) => {
         const chatId = response.notification.request.content.data.chatId;
         console.log(chatId);
-        if (chatId) {
-          const pushAction = StackActions.push("chatDetail", chatId);
-          navigation.dispatch(pushAction);
-        }
+
+        const pushAction = StackActions.replace("home");
+        navigation.dispatch(pushAction);
       });
 
     return () => {

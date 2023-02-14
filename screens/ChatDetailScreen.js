@@ -35,7 +35,6 @@ import {
 } from "../firebase";
 import Message from "../components/Message";
 import ReplyMessage from "../components/ReplyMessage";
-import { setStoreGuestChat } from "../store/ActionSlice";
 
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
@@ -43,11 +42,12 @@ function ChatDetailScreen({ route, navigation }) {
   const [replying, setReplying] = useState();
   const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+  const [closeModal, setCloseModal] = useState(false);
   const flatlist = useRef();
 
   const { guestChatData, userData, storedUsers, messagesData, chatsData } =
     useSelector((state) => state);
+
   const messageLists = useSelector((state) => {
     if (!chatId) return [];
     const messagesData = state.messagesData[chatId];
@@ -60,6 +60,7 @@ function ChatDetailScreen({ route, navigation }) {
     }
     return allMessages;
   });
+
   let chatListUsers;
   if (chatId) {
     chatListUsers =
@@ -102,49 +103,90 @@ function ChatDetailScreen({ route, navigation }) {
     });
   }, [guestChatData, chatId]);
 
+  //for send image or text
+  const handleSend = async (
+    chatId,
+    sendBy,
+    text,
+    replyMessId,
+    imgUrl,
+    notifiText
+  ) => {
+    await sendMessage(
+      chatId,
+      sendBy,
+      text,
+      replyMessId && replyMessId,
+      imgUrl && imgUrl
+    );
+    let sendListUsersNotifi = chatListUsers.filter(
+      (uid) => uid != userData.userId
+    );
+    await sendNotifications(
+      chatId,
+      sendListUsersNotifi,
+      guestChatData.isGroup
+        ? `${guestChatData.title} : ${userData.fullName}`
+        : userData.fullName,
+      notifiText
+    );
+  };
+
+  //create new chat for send image or text
+  const handleCreate = async (
+    createdBy,
+    listUserGroup,
+    text,
+    imgUrl,
+    title,
+    isGroup,
+    notifiText
+  ) => {
+    //Nếu ko có chatId thì mới tạo chat mới
+    const chatKey = await createChat(
+      createdBy,
+      listUserGroup,
+      text,
+      imgUrl,
+      title,
+      isGroup
+    );
+    if (chatKey) {
+      setChatId(chatKey);
+      await sendNotifications(
+        chatKey,
+        listUserGroup,
+        guestChatData.isGroup
+          ? `${guestChatData.title} : ${userData.fullName}`
+          : userData.fullName,
+        notifiText
+      );
+    }
+  };
+
   // send messages
   const handleSendMessage = useCallback(async () => {
     setTextInputValue("");
     setReplying();
     if (chatId) {
-      await sendMessage(
+      await handleSend(
         chatId,
         userData.userId,
         textInputValue,
-        replying && replying.key
-      );
-      let sendListUsersNotifi = chatListUsers.filter(
-        (uid) => uid != userData.userId
-      );
-      await sendNotifications(
-        chatId,
-        sendListUsersNotifi,
-        guestChatData.isGroup
-          ? `${guestChatData.title} : ${userData.fullName}`
-          : userData.fullName,
+        replying && replying.key,
+        null,
         textInputValue
       );
     } else {
-      //Nếu ko có chatId thì mới tạo chat mới
-      const chatKey = await createChat(
+      await handleCreate(
         userData.userId,
         guestChatData.guestChatDataId.concat(userData.userId),
         textInputValue,
         "",
         guestChatData.title,
-        guestChatData.isGroup
+        guestChatData.isGroup,
+        textInputValue
       );
-      if (chatKey) {
-        setChatId(chatKey);
-        await sendNotifications(
-          chatKey,
-          guestChatData.guestChatDataId,
-          guestChatData.isGroup
-            ? `${guestChatData.title} : ${userData.fullName}`
-            : userData.fullName,
-          textInputValue
-        );
-      }
     }
   }, [textInputValue, chatId]);
 
@@ -154,6 +196,7 @@ function ChatDetailScreen({ route, navigation }) {
     const imageResult = await openLibraryImage();
     if (imageResult) {
       setImageUri(imageResult);
+      setCloseModal(true);
     }
   }, [imageUri]);
 
@@ -161,6 +204,7 @@ function ChatDetailScreen({ route, navigation }) {
     const imageResult = await openCameraImage();
     if (imageResult) {
       setImageUri(imageResult);
+      setCloseModal(true);
     }
   }, [imageUri]);
 
@@ -169,52 +213,32 @@ function ChatDetailScreen({ route, navigation }) {
     try {
       setLoading(true);
       const urlImg = await uploadImageToFirebase(imageUri, "ChatPics");
+      setLoading(false);
+      setCloseModal(false);
 
       if (chatId) {
-        await sendMessage(
+        await handleSend(
           chatId,
           userData.userId,
           "Image",
           replying && replying.key,
-          urlImg
-        );
-        let sendListUsersNotifi = chatListUsers.filter(
-          (uid) => uid != userData.userId
-        );
-        await sendNotifications(
-          chatId,
-          sendListUsersNotifi,
-          guestChatData.isGroup
-            ? `${guestChatData.title} : ${userData.fullName}`
-            : userData.fullName,
+          urlImg,
           "Sent a picture"
         );
       } else {
-        //Nếu ko có chatId thì mới tạo chat mới
-        const chatKey = await createChat(
+        await handleCreate(
           userData.userId,
           guestChatData.guestChatDataId.concat(userData.userId),
           "Image",
           urlImg,
           guestChatData.title,
-          guestChatData.isGroup
+          guestChatData.isGroup,
+          "Sent a picture"
         );
-        if (chatKey) {
-          setChatId(chatKey);
-
-          await sendNotifications(
-            chatKey,
-            guestChatData.guestChatDataId,
-            guestChatData.isGroup
-              ? `${guestChatData.title} : ${userData.fullName}`
-              : userData.fullName,
-            "Sent a picture"
-          );
-        }
       }
-      setLoading(false);
-      setReplying();
+
       setImageUri("");
+      setReplying();
     } catch (error) {
       console.log(error);
     }
@@ -267,7 +291,7 @@ function ChatDetailScreen({ route, navigation }) {
 
                 if (
                   type != "info" &&
-                  guestChatData.isGroup &&
+                  // guestChatData.isGroup &&
                   item.sentBy != userData.userId
                 ) {
                   let userDetail = storedUsers[item.sentBy];
@@ -290,6 +314,7 @@ function ChatDetailScreen({ route, navigation }) {
                     imageMessage={item.imageUrl}
                     sentByName={name}
                     avatar={avatar}
+                    unsend={item.unsend || false}
                   >
                     {item.text}
                   </Message>
@@ -363,7 +388,7 @@ function ChatDetailScreen({ route, navigation }) {
 
         {/* Modal */}
         <AwesomeAlert
-          show={!!imageUri}
+          show={closeModal}
           title="Send image?"
           closeOnTouchOutside={true}
           closeOnHardwareBackPress={false}
