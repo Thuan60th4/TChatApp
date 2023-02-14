@@ -10,7 +10,6 @@ import {
   endAt,
   get,
   getDatabase,
-  off,
   orderByChild,
   push,
   query,
@@ -28,6 +27,8 @@ import {
 } from "firebase/storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { v4 as uuidv4 } from "uuid";
+import * as Device from "expo-device";
+
 const auth = getAuth();
 const db = getDatabase();
 
@@ -81,8 +82,13 @@ export const signIn = async (email, password) => {
   }
 };
 
-export const logOut = async () => {
+export const logOut = async (userId, newListPushTok) => {
   try {
+    if (Device.isDevice && newListPushTok) {
+      await update(ref(db, `users/${userId}`), {
+        pushTokens: newListPushTok,
+      });
+    }
     await signOut(auth);
     AsyncStorage.removeItem("token");
     return true;
@@ -350,6 +356,49 @@ export const addHeartMessage = async (heartDataArray, chatId, messageId) => {
   try {
     await update(ref(db, `messages/${chatId}/${messageId}`), {
       heart: heartDataArray,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const storePushToken = async (userData, token) => {
+  if (!Device.isDevice) {
+    return;
+  }
+
+  const tokenData = userData.pushTokens || [];
+
+  if (tokenData.includes(token)) {
+    return;
+  }
+
+  await update(ref(db, `users/${userData.userId}`), {
+    pushTokens: [...tokenData, token],
+  });
+};
+
+export const sendNotifications = async (chatId, chatUsers, title, body) => {
+  try {
+    chatUsers.forEach(async (uid) => {
+      const result = await get(ref(db, `users/${uid}`));
+      if (!result.exists()) return;
+      const data = result.val();
+      if (!data?.pushTokens) return;
+      for (const token of data.pushTokens) {
+        await fetch("https://exp.host/--/api/v2/push/send", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: token,
+            title,
+            body,
+            data: { chatId },
+          }),
+        });
+      }
     });
   } catch (error) {
     console.log(error);

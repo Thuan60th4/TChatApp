@@ -27,7 +27,12 @@ import {
 import { openCameraImage, openLibraryImage } from "../utils/accessImage";
 import { Colors } from "../constants/colors";
 import IconButtom from "../components/IconButtom";
-import { createChat, sendMessage, uploadImageToFirebase } from "../firebase";
+import {
+  createChat,
+  sendMessage,
+  sendNotifications,
+  uploadImageToFirebase,
+} from "../firebase";
 import Message from "../components/Message";
 import ReplyMessage from "../components/ReplyMessage";
 import { setStoreGuestChat } from "../store/ActionSlice";
@@ -55,12 +60,14 @@ function ChatDetailScreen({ route, navigation }) {
     }
     return allMessages;
   });
+  let chatListUsers;
+  if (chatId) {
+    chatListUsers =
+      chatsData[chatId]?.newUsers || chatsData[chatId]?.users || [];
+  }
 
   useEffect(() => {
     if (chatId && guestChatData.isGroup) {
-      let chatListUsers =
-        chatsData[chatId]?.newUsers || chatsData[chatId]?.users || [];
-
       if (!chatListUsers.includes(userData.userId)) {
         navigation.navigate("home");
       }
@@ -106,6 +113,17 @@ function ChatDetailScreen({ route, navigation }) {
         textInputValue,
         replying && replying.key
       );
+      let sendListUsersNotifi = chatListUsers.filter(
+        (uid) => uid != userData.userId
+      );
+      await sendNotifications(
+        chatId,
+        sendListUsersNotifi,
+        guestChatData.isGroup
+          ? `${guestChatData.title} : ${userData.fullName}`
+          : userData.fullName,
+        textInputValue
+      );
     } else {
       //Nếu ko có chatId thì mới tạo chat mới
       const chatKey = await createChat(
@@ -118,6 +136,14 @@ function ChatDetailScreen({ route, navigation }) {
       );
       if (chatKey) {
         setChatId(chatKey);
+        await sendNotifications(
+          chatKey,
+          guestChatData.guestChatDataId,
+          guestChatData.isGroup
+            ? `${guestChatData.title} : ${userData.fullName}`
+            : userData.fullName,
+          textInputValue
+        );
       }
     }
   }, [textInputValue, chatId]);
@@ -152,6 +178,17 @@ function ChatDetailScreen({ route, navigation }) {
           replying && replying.key,
           urlImg
         );
+        let sendListUsersNotifi = chatListUsers.filter(
+          (uid) => uid != userData.userId
+        );
+        await sendNotifications(
+          chatId,
+          sendListUsersNotifi,
+          guestChatData.isGroup
+            ? `${guestChatData.title} : ${userData.fullName}`
+            : userData.fullName,
+          "Sent a picture"
+        );
       } else {
         //Nếu ko có chatId thì mới tạo chat mới
         const chatKey = await createChat(
@@ -164,6 +201,15 @@ function ChatDetailScreen({ route, navigation }) {
         );
         if (chatKey) {
           setChatId(chatKey);
+
+          await sendNotifications(
+            chatKey,
+            guestChatData.guestChatDataId,
+            guestChatData.isGroup
+              ? `${guestChatData.title} : ${userData.fullName}`
+              : userData.fullName,
+            "Sent a picture"
+          );
         }
       }
       setLoading(false);

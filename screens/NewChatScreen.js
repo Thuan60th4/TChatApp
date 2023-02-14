@@ -44,6 +44,8 @@ function NewChatScreen({ navigation, route }) {
     users = chatsData[chatId]?.users || [];
   }
 
+
+  //search users
   useEffect(() => {
     if (searchValue.trim()) {
       const timer = setTimeout(async () => {

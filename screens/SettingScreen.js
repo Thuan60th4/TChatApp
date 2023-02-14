@@ -11,11 +11,11 @@ import CustomInput from "../components/CustomInput";
 import { InfoUserSchema } from "../components/AuthForm/schemaValidate";
 import CustomButtom from "../components/CustomButtom";
 import { logOut, updateUserData } from "../firebase";
-import { authenticate, updateDataState } from "../store/ActionSlice";
+import { authenticate } from "../store/ActionSlice";
 import ProfileImage from "../components/ProfileImage";
 
 function AuthForm() {
-  const userData = useSelector((state) => state.userData);
+  const { userData, pushToken } = useSelector((state) => state);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [iconDone, setIconDone] = useState(false);
@@ -35,7 +35,8 @@ function AuthForm() {
     textInputRefs.forEach((ref) => ref.current.blur());
     setLoading(true);
     await updateUserData(userData.userId, values);
-    dispatch(updateDataState(values));
+    // dispatch(updateDataState(values));
+    //onvalue truc tiep r
     setLoading(false);
     setIconDone(true);
     setTimeout(() => {
@@ -45,7 +46,10 @@ function AuthForm() {
   };
 
   return (
-    <KeyboardAwareScrollView style={{ flex: 1, backgroundColor: "black" }} extraScrollHeight={50}>
+    <KeyboardAwareScrollView
+      style={{ flex: 1, backgroundColor: "black" }}
+      extraScrollHeight={50}
+    >
       <Text style={styles.headerText}> Settings</Text>
 
       <View style={styles.wrapper}>
@@ -170,9 +174,15 @@ function AuthForm() {
                   backgroundColor: "red",
                   minWidth: 150,
                 }}
-                onPress={() => {
+                onPress={async () => {
+                  let newListPushTok;
+                  if (pushToken && userData.pushTokens) {
+                    newListPushTok = userData.pushTokens.filter(
+                      (token) => token != pushToken
+                    );
+                  }
+                  await logOut(userData.userId, newListPushTok);
                   dispatch(authenticate({ token: null, userData: {} }));
-                  logOut();
                 }}
               >
                 Log out

@@ -17,10 +17,11 @@ import HomeNavigation from "./navigation/HomeNavigation";
 
 LogBox.ignoreLogs(["Sending `onAnimatedValueUpdate`"]);
 LogBox.ignoreLogs(["AsyncStorage has been extracted"]); //hủy cái warning của react khi dùg firebase
+
 SplashScreen.preventAutoHideAsync();
 
 function Root() {
-  const userInfo = useSelector((state) => state);
+  const {token} = useSelector((state) => state);
   const dispatch = useDispatch();
   useEffect(() => {
     const getToken = async () => {
@@ -41,7 +42,7 @@ function Root() {
     getToken();
   }, []);
 
-  if (!!userInfo.token) return <HomeNavigation />;
+  if (!!token) return <HomeNavigation />;
   return <AuthNavigation />;
 }
 

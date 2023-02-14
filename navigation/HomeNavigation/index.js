@@ -1,16 +1,22 @@
+import { StackActions, useNavigation } from "@react-navigation/native";
+import * as Notifications from "expo-notifications";
 import { getAuth } from "firebase/auth";
 import { get, getDatabase, off, onValue, ref } from "firebase/database";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
-import { Colors } from "../../constants/colors";
 
+import { Colors } from "../../constants/colors";
+import { storePushToken } from "../../firebase";
 import { app } from "../../firebase/initalFirebase";
 import {
   setChatMessages,
   setChatsData,
+  setPushToken,
   setStoredUsers,
+  updateDataState,
 } from "../../store/ActionSlice";
+import registerForPushNotificationsAsync from "../../utils/getExpoPushToken";
 import MainNavigation from "./MainNavigation";
 
 const auth = getAuth();
@@ -18,8 +24,46 @@ const db = getDatabase();
 
 function HomeNavigation() {
   const { userData, storedUsers } = useSelector((state) => state);
-  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const navigation = useNavigation();
+
+  const notificationListener = useRef();
+  const responseListener = useRef();
+
+  useEffect(() => {
+    const getToken = async () => {
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        // console.log(token);
+        await storePushToken(userData, token);
+        dispatch(setPushToken(token));
+      }
+    };
+    getToken();
+
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        // Handle received notification
+      });
+
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const chatId = response.notification.request.content.data.chatId;
+        console.log(chatId);
+        if (chatId) {
+          const pushAction = StackActions.push("chatDetail", chatId);
+          navigation.dispatch(pushAction);
+        }
+      });
+
+    return () => {
+      Notifications.removeNotificationSubscription(
+        notificationListener.current
+      );
+      Notifications.removeNotificationSubscription(responseListener.current);
+    };
+  }, []);
 
   useEffect(() => {
     const userChatsRef = ref(db, `userChats/${userData.userId}`);
@@ -81,6 +125,13 @@ function HomeNavigation() {
         dispatch(setChatsData());
         setIsLoading(false);
       }
+    });
+
+    const userRef = ref(db, `users/${userData.userId}`);
+    refs.push(userRef);
+
+    onValue(userRef, (snapshot) => {
+      dispatch(updateDataState(snapshot.val()));
     });
 
     return () => {

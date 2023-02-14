@@ -4,6 +4,7 @@ const ActionSlice = createSlice({
   name: "Auth",
   initialState: {
     token: "",
+    pushToken: "",
     userData: {},
     guestChatData: {},
     chatsData: {},
@@ -38,6 +39,9 @@ const ActionSlice = createSlice({
     setLoadRemoveUsers: (state, action) => {
       state.loadRemoveUsers = action.payload;
     },
+    setPushToken: (state, action) => {
+      state.pushToken = action.payload;
+    },
   },
 });
 
@@ -49,6 +53,7 @@ export const {
   setStoredUsers,
   setChatMessages,
   setLoadRemoveUsers,
+  setPushToken,
 } = ActionSlice.actions;
 
 export default ActionSlice.reducer;
