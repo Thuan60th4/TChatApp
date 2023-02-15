@@ -2,7 +2,6 @@ import { Easing, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { SimpleLineIcons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 
@@ -85,11 +84,11 @@ function BottomTab() {
         name="SettingScreen"
         component={SettingScreen}
         options={{
-          title: "Settings",
+          title: "Personal",
           headerTitle: "",
           headerLeft: () => <Text style={styles.headerText}>Settings</Text>,
           tabBarIcon: ({ size, color }) => (
-            <SimpleLineIcons name="settings" size={size} color={color} />
+            <Ionicons name="ios-person-outline" size={size} color={color} />
           ),
         }}
       />

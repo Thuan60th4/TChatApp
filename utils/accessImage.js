@@ -10,9 +10,9 @@ export const openLibraryImage = async () => {
   if (hasPermission) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      // allowsEditing: true,
+      // aspect: [1, 1],
       allowsMultipleSelection: false,
-      aspect: [1, 1],
       quality: 0.2,
     });
     if (!result.canceled) {
@@ -25,8 +25,8 @@ export const openCameraImage = async () => {
   const hasPermission = await requesCameraPermission();
   if (hasPermission) {
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
+      // allowsEditing: true,
+      // aspect: [1, 1],
       quality: 0.2,
     });
     if (!result.canceled) {

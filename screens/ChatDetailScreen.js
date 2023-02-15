@@ -35,6 +35,7 @@ import {
 } from "../firebase";
 import Message from "../components/Message";
 import ReplyMessage from "../components/ReplyMessage";
+import ModalImageView from "../components/ModalImageView";
 
 function ChatDetailScreen({ route, navigation }) {
   const [textInputValue, setTextInputValue] = useState("");
@@ -43,6 +44,8 @@ function ChatDetailScreen({ route, navigation }) {
   const [imageUri, setImageUri] = useState("");
   const [loading, setLoading] = useState(false);
   const [closeModal, setCloseModal] = useState(false);
+
+  const [isVisbleModalImage, setIsVisbleModalImage] = useState("");
   const flatlist = useRef();
 
   const { guestChatData, userData, storedUsers, messagesData, chatsData } =
@@ -315,6 +318,7 @@ function ChatDetailScreen({ route, navigation }) {
                     sentByName={name}
                     avatar={avatar}
                     unsend={item.unsend || false}
+                    setImageUrl={setIsVisbleModalImage}
                   >
                     {item.text}
                   </Message>
@@ -418,6 +422,13 @@ function ChatDetailScreen({ route, navigation }) {
           }
         />
       </KeyboardAvoidingView>
+      {isVisbleModalImage && (
+        <ModalImageView
+          isModalVisible={!!isVisbleModalImage}
+          imageUrl={isVisbleModalImage}
+          closeModal={() => setIsVisbleModalImage()}
+        />
+      )}
     </ImageBackground>
   );
 }

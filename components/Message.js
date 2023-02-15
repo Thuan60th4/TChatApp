@@ -36,6 +36,7 @@ function Message({
   sentByName,
   avatar,
   unsend,
+  setImageUrl,
 }) {
   const { userData } = useSelector((state) => state);
   const [heartDataArray, setHeartDataArray] = useState([]);
@@ -45,7 +46,9 @@ function Message({
 
   const menuRef = useRef();
   const timePress = useRef();
+  const modalTime = useRef();
   const heartValueAnimate = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     if (isHeart) {
       Animated.timing(heartValueAnimate, {
@@ -104,16 +107,24 @@ function Message({
   const handleDoubleTap = () => {
     if (type != "info" && !unsend) {
       const now = new Date();
-      const delay = 600;
+      const delay = 500;
       if (
         timePress.current &&
         now - timePress.current < delay
         // && !isAnimated.current
       ) {
         updateValueHeart();
+        if (modalTime.current) {
+          clearTimeout(modalTime.current);
+        }
         // isAnimated.current = true;
       } else {
         timePress.current = now;
+        if (imageMessage) {
+          modalTime.current = setTimeout(() => {
+            setImageUrl(imageMessage);
+          }, 250);
+        }
       }
     }
   };
@@ -402,4 +413,3 @@ const styles = StyleSheet.create({
 });
 
 export default Message;
-

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   Platform,
   StyleSheet,
@@ -8,10 +7,12 @@ import {
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { useDispatch, useSelector } from "react-redux";
+import Swipeable from "react-native-gesture-handler/Swipeable";
 
 import UserItem from "../components/UserItem";
 import { Colors } from "../constants/colors";
 import { setStoreGuestChat } from "../store/ActionSlice";
+import RightDeleteBtn from "../components/RightDeleteBtn";
 
 function ChatListScreen({ navigation }) {
   // const [numberOfUsers, setNumberOfUsers] = useState();
@@ -21,6 +22,8 @@ function ChatListScreen({ navigation }) {
   const allChatData = Object.values(chatsData).sort((a, b) => {
     return new Date(b.updatedAt) - new Date(a.updatedAt);
   });
+  let prevOpenedRow;
+  let row = [];
 
   // useEffect(() => {
   //   setNumberOfUsers(allChatData.length);
@@ -63,27 +66,40 @@ function ChatListScreen({ navigation }) {
             name = `${otherUser.firstName} ${otherUser.lastName}`;
             about = otherUser.about;
           }
+
+          const closeRow = (index) => {
+            if (prevOpenedRow && prevOpenedRow !== row[index]) {
+              prevOpenedRow.close();
+            }
+            prevOpenedRow = row[index];
+          };
           return (
-            <UserItem
-              isGroupList={chatData.isGroup}
-              avatar={image}
-              chatName={name}
-              subTitle={chatData.lastMessageText}
-              style={{ marginLeft: 15 }}
-              onPress={() => {
-                dispatch(
-                  setStoreGuestChat({
-                    title: name,
-                    guestChatDataId: chatData.newUsers || chatData.users,
-                    avatar: image,
-                    about: about,
-                    isGroup: chatData.isGroup,
-                    key: chatData.key,
-                  })
-                );
-                navigation.navigate("chatDetail", chatData.key);
-              }}
-            />
+            <Swipeable
+              renderRightActions={() => <RightDeleteBtn chatData={chatData} />}
+              onSwipeableOpen={() => closeRow(item.index)}
+              ref={(ref) => (row[item.index] = ref)}
+            >
+              <UserItem
+                isGroupList={chatData.isGroup}
+                avatar={image}
+                chatName={name}
+                subTitle={chatData.lastMessageText}
+                style={{ marginLeft: 15 }}
+                onPress={() => {
+                  dispatch(
+                    setStoreGuestChat({
+                      title: name,
+                      guestChatDataId: chatData.newUsers || chatData.users,
+                      avatar: image,
+                      about: about,
+                      isGroup: chatData.isGroup,
+                      key: chatData.key,
+                    })
+                  );
+                  navigation.navigate("chatDetail", chatData.key);
+                }}
+              />
+            </Swipeable>
           );
         }}
         keyExtractor={(item) => item.key}
