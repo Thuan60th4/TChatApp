@@ -71,7 +71,11 @@ function ChatDetailScreen({ route, navigation }) {
   }
 
   useEffect(() => {
+<<<<<<< HEAD
     if (chatId) {
+=======
+    if (chatId && guestChatData.isGroup) {
+>>>>>>> 0d1548e0db186508704013e6cb820e2218690191
       if (!chatListUsers.includes(userData.userId)) {
         navigation.navigate("home");
       }
@@ -216,8 +220,13 @@ function ChatDetailScreen({ route, navigation }) {
     try {
       setLoading(true);
       const urlImg = await uploadImageToFirebase(imageUri, "ChatPics");
+<<<<<<< HEAD
       setCloseModal(false);
       setLoading(false);
+=======
+      setLoading(false);
+      setCloseModal(false);
+>>>>>>> 0d1548e0db186508704013e6cb820e2218690191
 
       if (chatId) {
         await handleSend(

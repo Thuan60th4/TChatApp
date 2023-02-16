@@ -8,7 +8,11 @@
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
+<<<<<<< HEAD
       "resizeMode": "cover",
+=======
+      "resizeMode":"cover",
+>>>>>>> 0d1548e0db186508704013e6cb820e2218690191
       "backgroundColor": "#ffffff"
     },
     "updates": {
@@ -18,6 +22,7 @@
       "**/*"
     ],
     "ios": {
+<<<<<<< HEAD
       "buildNumber": "1.0.0",
       "supportsTablet": true
     },
@@ -32,10 +37,24 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+=======
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }, 
+>>>>>>> 0d1548e0db186508704013e6cb820e2218690191
     "plugins": [
       [
         "expo-notifications",
         {
+<<<<<<< HEAD
           "icon": "./assets/icon.png",
           "color": "#ffffff"
         }
@@ -46,5 +65,16 @@
         "projectId": "947e133a-5b34-41ed-a20a-e6cc4112804b"
       }
     }
+=======
+          "icon": "./local/assets/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./local/assets/notification-sound.wav",
+            "./local/assets/notification-sound-other.wav"
+          ]
+        }
+      ]
+    ]
+>>>>>>> 0d1548e0db186508704013e6cb820e2218690191
   }
 }
