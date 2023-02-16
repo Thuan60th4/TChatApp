@@ -31,7 +31,6 @@
     "react-native": "0.70.5",
     "react-native-awesome-alerts": "^2.0.0",
     "react-native-gesture-handler": "~2.8.0",
-<<<<<<< HEAD
     "react-native-get-random-values": "~1.8.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-modal": "^13.0.1",
@@ -40,22 +39,11 @@
     "react-native-screens": "~3.18.0",
     "react-redux": "^8.0.5",
     "source-map-url": "^0.4.1",
-=======
-    "react-native-get-random-values": "^1.8.0",
-    "react-native-keyboard-aware-scroll-view": "^0.9.5",
-    "react-native-modal": "^13.0.1",
-    "react-native-popup-menu": "^0.16.1",
-    "react-redux": "^8.0.5",
->>>>>>> 0d1548e0db186508704013e6cb820e2218690191
     "uuid": "^9.0.0",
     "yup": "^0.32.11"
   },
   "devDependencies": {
-<<<<<<< HEAD
     "@babel/core": "^7.19.3"
-=======
-    "@babel/core": "^7.12.9"
->>>>>>> 0d1548e0db186508704013e6cb820e2218690191
   },
   "private": true
 }

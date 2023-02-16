@@ -42,11 +42,7 @@ const ImageViewer = ({ isModalVisible, imageUrl, closeModal }) => {
       animationOut="zoomOut"
       style={[
         styles.conatain,
-<<<<<<< HEAD
         { justifyContent: size.height > 550 ? "flex-end" : "center" },
-=======
-        { justifyContent: size.height > 750 ? "flex-end" : "center" },
->>>>>>> 0d1548e0db186508704013e6cb820e2218690191
       ]}
       onBackdropPress={closeModal}
       backdropOpacity={0.95}
